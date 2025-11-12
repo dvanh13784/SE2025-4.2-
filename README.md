@@ -8,9 +8,10 @@ App được viết bằng **Java (Android Studio)** và **Node.js (Express)** l
 ## 📱 Giới thiệu
 
 Ứng dụng cho phép người dùng:
-1. Kết nối tới server Node.js để lấy đường dẫn mô hình 3D (.glb)
-2. Hiển thị mô hình đó trong không gian AR (sử dụng camera)
-3. Tương tác (xoay, phóng to, thu nhỏ) mô hình trong môi trường ảo
+
+1. Kết nối tới server Node.js để lấy đường dẫn mô hình 3D (.glb)  
+2. Hiển thị mô hình đó trong không gian AR (sử dụng camera)  
+3. Tương tác (xoay, phóng to, thu nhỏ) mô hình trong môi trường ảo  
 
 ---
 
@@ -23,14 +24,30 @@ App được viết bằng **Java (Android Studio)** và **Node.js (Express)** l
   - `com.google.ar:core` — ARCore (AR engine của Google)
   - `com.gorisse.thomas.sceneform:ux` — Sceneform Community (hiển thị mô hình 3D)
   - `com.squareup.retrofit2` — Retrofit (kết nối REST API)
-  - `com.squareup.okhttp3:logging-interceptor` — log request/response
+  - `com.squareup.okhttp3:logging-interceptor` — log request/response  
 
 ### 🌐 Node.js Server
 - **Ngôn ngữ:** JavaScript  
 - **Thư viện:** Express, CORS, Path  
-- **Nhiệm vụ:** phục vụ file `.glb` và trả về JSON chứa URL model
+- **Nhiệm vụ:** phục vụ file `.glb` và trả về JSON chứa URL model  
 
 ---
 
-## 🗂 Cấu trúc dự án
 
+## ⚙️ Cài đặt & chạy
+
+### 🔹 1. Chuẩn bị môi trường
+- Cài **Node.js** (https://nodejs.org)  
+- Cài **Android Studio**  
+- Tạo **emulator có Google Play Services for AR**  
+
+---
+
+### 🔹 2. Cài và chạy server Node.js
+
+```bash
+cd server
+npm init -y
+npm install express cors
+node server.js
+Server chạy tại http://localhost:3000
