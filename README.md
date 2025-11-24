@@ -1,53 +1,57 @@
-# 🌿 AR Demo App (Android + Node.js)
+🌿 AR Demo App (Android + Node.js)
 
-Dự án demo ứng dụng **AR (Augmented Reality)** hiển thị mô hình 3D trên màn hình điện thoại Android.  
-App được viết bằng **Java (Android Studio)** và **Node.js (Express)** làm server.
+Đây là một ứng dụng demo AR (Augmented Reality – Thực tế tăng cường) cho phép hiển thị mô hình 3D trên màn hình điện thoại Android.
+Ứng dụng được xây dựng bằng Java (Android Studio) và một server backend sử dụng Node.js (Express).
 
----
+📱 Giới thiệu
 
-## 📱 Giới thiệu
+Ứng dụng hỗ trợ người dùng:
 
-Ứng dụng cho phép người dùng:
+Kết nối đến server Node.js để lấy URL của mô hình 3D (.glb)
 
-1. Kết nối tới server Node.js để lấy đường dẫn mô hình 3D (.glb)  
-2. Hiển thị mô hình đó trong không gian AR (sử dụng camera)  
-3. Tương tác (xoay, phóng to, thu nhỏ) mô hình trong môi trường ảo  
+Hiển thị mô hình đó trong không gian AR thông qua camera
 
----
+Tương tác với mô hình: xoay, phóng to, thu nhỏ ngay trong môi trường thực
 
-## 🧩 Công nghệ sử dụng
+🧩 Công nghệ sử dụng
+🖥 Android App
 
-### 🖥 Android App
-- **Ngôn ngữ:** Java  
-- **Công cụ:** Android Studio  
-- **Thư viện chính:**
-  - `com.google.ar:core` — ARCore (AR engine của Google)
-  - `com.gorisse.thomas.sceneform:ux` — Sceneform Community (hiển thị mô hình 3D)
-  - `com.squareup.retrofit2` — Retrofit (kết nối REST API)
-  - `com.squareup.okhttp3:logging-interceptor` — log request/response  
+Ngôn ngữ: Java
 
-### 🌐 Node.js Server
-- **Ngôn ngữ:** JavaScript  
-- **Thư viện:** Express, CORS, Path  
-- **Nhiệm vụ:** phục vụ file `.glb` và trả về JSON chứa URL model  
+Công cụ phát triển: Android Studio
 
----
+Các thư viện chính:
 
+com.google.ar:core — Google ARCore, nền tảng AR của Google
 
-## ⚙️ Cài đặt & chạy
+com.gorisse.thomas.sceneform:ux — Sceneform Community dùng để hiển thị mô hình 3D
 
-### 🔹 1. Chuẩn bị môi trường
-- Cài **Node.js** (https://nodejs.org)  
-- Cài **Android Studio**  
-- Tạo **emulator có Google Play Services for AR**  
+com.squareup.retrofit2 — Retrofit để gọi REST API
 
----
+com.squareup.okhttp3:logging-interceptor — hỗ trợ log request và response
 
-### 🔹 2. Cài và chạy server Node.js
+🌐 Node.js Server
 
-```bash
+Ngôn ngữ: JavaScript
+
+Thư viện: Express, CORS, Path
+
+Chức năng: cung cấp file .glb và trả về JSON chứa URL của mô hình để app tải về
+
+⚙️ Cài đặt & chạy
+🔹 1. Chuẩn bị môi trường
+
+Cài Node.js tại: https://nodejs.org
+
+Cài Android Studio
+
+Tạo Android Emulator có hỗ trợ Google Play Services for AR
+
+🔹 2. Cài đặt & chạy server Node.js
 cd server
 npm init -y
 npm install express cors
 node server.js
-Server chạy tại http://localhost:3000
+
+# Server chạy tại:
+http://localhost:3000
