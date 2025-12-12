@@ -1,0 +1,7 @@
+Tiến trình hiện tại:
+- Đã chạy xong hoàn toàn server, code xong. nguồn server để tại : C:\Users\Admin\Project SE\ar-server trong pc. Cách chạy server vào terminal
+với đường dẫn đó chạy node server.js. sau đó vào web http://localhost:3000. 
+- vào web http://localhost:3000/models/tree.glb để tải file glb về pc.
+- đã hoàn thiện xong source của code liên kết với android
+Tiếp theo:
+- liên kết điện thoại xiaomi với hệ thống kết nối wifi để tải file glb từ local về, sau đó test thử và check lỗi
