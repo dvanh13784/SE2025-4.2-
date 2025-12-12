@@ -14,50 +14,131 @@ o	Cho phép người dùng tương tác với mô hình (xoay, phóng to, thu nh
 o	Chạy server trên máy tính cá nhân
 o	Thiết bị Android kết nối cùng mạng để truy cập server và hiển thị AR
 Các bước lần lượt cần làm : 
-1) Chuẩn bị môi trường
-1.	Cài Node.js (LTS).
-2.	Cài Android Studio + SDK.
-3.	Chuẩn bị điện thoại Android hỗ trợ ARCore (khuyến nghị dùng máy thật; emulator thường bất ổn với AR).
-4.	Chuẩn bị 1 model mẫu dạng .glb (có thể export từ Blender).
-2) Dựng server Node.js (tối thiểu chạy được)
-1.	Tạo thư mục server/
-2.	Tạo public/models/ và đặt tree.glb (hoặc model khác) vào đó.
-3.	Tạo server.js gồm:
-o	Serve static /models
-o	API GET /api/models/:id trả về JSON { id, url }
-4.	Chạy server và kiểm tra trên trình duyệt máy tính:
-o	http://localhost:3000/api/models/tree
-o	http://localhost:3000/models/tree.glb
-3) Thiết lập test mạng LAN (đúng kiểu bạn từng test)
-1.	Cho laptop phát Wi-Fi (hotspot) hoặc dùng router chung.
-2.	Điện thoại kết nối vào cùng mạng.
-3.	Lấy IP LAN của laptop (ví dụ 192.168.43.1).
-4.	Trên điện thoại mở Chrome test:
-o	http://<IP>:3000/api/models/tree
-o	http://<IP>:3000/models/tree.glb
-Nếu điện thoại truy cập được 2 link này, mạng OK.
-4) Tạo dự án Android AR (khung chạy AR trước)
-1.	Tạo project Android (Java).
-2.	Thêm quyền và cấu hình cần thiết:
-o	Camera permission (nếu cần theo mẫu)
-o	ARCore dependency
-3.	Tích hợp ARFragment / Sceneform để mở camera và detect plane.
-4.	Chạy app: đảm bảo mở camera AR và hiện hướng dẫn tìm mặt phẳng (plane).
-5) Kết nối Android với server (lấy URL model)
-1.	Thêm Retrofit + OkHttp logging.
-2.	Tạo API client gọi:
-o	GET http://<IP>:3000/api/models/tree
-3.	Log ra url nhận được để chắc chắn call API thành công.
-6) Tải và hiển thị model GLB trong AR
-1.	Khi đã có modelUrl, dùng Sceneform load GLB từ URL.
-2.	Bắt sự kiện user tap lên mặt phẳng:
-o	tạo Anchor
-o	tạo Node/TransformableNode
-o	gán renderable (model) vào node
-3.	Chạy app và đặt model được vào AR.
-7) Thêm tương tác cơ bản
-1.	Bật thao tác:
-o	kéo/di chuyển (nếu bạn cho phép)
-o	xoay
-o	phóng to/thu nhỏ
-2.	Thêm UI tối thiểu (nút chọn model, reset scene, v.v. – tuỳ bạn).
+1) Chạy server Node.js (local trên PC)
+Bước 1. Mở terminal tại thư mục server
+
+Ví dụ:
+C:\Users\Admin\ar-server
+
+Bước 2. Chạy server
+node server.js
+
+Kết quả đúng cần thấy
+
+Terminal in:
+
+Server chạy tại http://localhost:3000
+
+2) Test server bằng trình duyệt (PC)
+Bước 3. Test API trả URL model
+
+Mở:
+
+http://localhost:3000/api/models/tree
+
+Kết quả đúng cần thấy
+
+Trả JSON:
+
+{"id":"tree","url":"http://localhost:3000/models/tree.glb"}
+
+Bước 4. Test file GLB
+
+Mở:
+
+http://localhost:3000/models/tree.glb
+
+Kết quả đúng cần thấy
+
+Trình duyệt tải được file (không 404)
+
+👉 Nếu 2 bước này OK ⇒ server đạt yêu cầu (cung cấp model qua HTTP + trả URL qua API).
+
+3) Chạy Android trên Android Studio (2 chế độ)
+Chế độ A — Emulator (chỉ kiểm tra kết nối API)
+
+Emulator chỉ để test Retrofit/network, không bắt buộc phải đặt AR.
+
+Bước 5A. Đảm bảo BASE_URL đúng cho emulator
+
+Trong MainActivity:
+
+BASE_URL = "http://10.0.2.2:3000/";
+
+Bước 6A. Run app trên emulator
+
+Android Studio → Run (chọn emulator)
+
+Kết quả đúng cần thấy
+
+App mở lên và hiển thị thông báo (Toast) kiểu:
+
+“Model sẵn sàng”
+
+Logcat không báo lỗi mạng
+
+👉 Kết quả này chứng minh: Android client gọi được API server và lấy được URL file .glb.
+
+Chế độ B — Máy thật (kết quả cuối cùng của project)
+
+Đây là phần bắt buộc để “đạt” đề tài AR.
+
+Bước 5B. Đổi BASE_URL sang IP của PC
+
+Ví dụ:
+
+BASE_URL = "http://192.168.1.10:3000/";
+
+Bước 6B. Cho điện thoại và PC cùng mạng
+
+Laptop phát Wi-Fi hoặc cùng router
+
+Bước 7B. Test bằng Chrome trên điện thoại (trước khi chạy app)
+
+Mở:
+
+http://192.168.1.10:3000/api/models/tree
+
+Kết quả đúng cần thấy
+
+Điện thoại thấy JSON trả về (không timeout)
+
+Bước 8B. Run app từ Android Studio lên điện thoại
+
+Cắm USB debugging
+
+Android Studio → Run → chọn thiết bị thật
+
+Bước 9B. Trải nghiệm AR
+
+App mở camera
+
+Di chuyển điện thoại để nhận diện mặt phẳng (plane)
+
+Chạm lên mặt phẳng để đặt model
+
+Kết quả đúng cần thấy (tiêu chí hoàn thành)
+
+Model 3D xuất hiện trong không gian thực (AR)
+
+Model lấy từ server (không nhúng cứng trong app)
+
+Người dùng thao tác được:
+
+phóng to/thu nhỏ
+
+xoay
+
+(tuỳ chọn) di chuyển/đặt lại
+
+👉 Nếu bạn đạt 3 ý này trên máy thật, thì thỏa mãn yêu cầu đề tài Client–Server AR.
+
+Tiêu chí “đạt” của project (chốt ngắn gọn)
+
+Bạn chỉ cần chứng minh được:
+
+Server Node.js cung cấp model .glb và API trả URL
+
+Android app gọi API lấy URL model
+
+Android ARCore tải model từ URL và hiển thị trong AR + tương tác cơ bản
