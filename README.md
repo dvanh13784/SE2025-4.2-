@@ -22,7 +22,7 @@ Các bước lần lượt cần làm :
 2) Dựng server Node.js (tối thiểu chạy được)
 1.	Tạo thư mục server/
 2.	Tạo public/models/ và đặt tree.glb (hoặc model khác) vào đó.
-3.	Tạo server.js (giống file bạn đã có) gồm:
+3.	Tạo server.js gồm:
 o	Serve static /models
 o	API GET /api/models/:id trả về JSON { id, url }
 4.	Chạy server và kiểm tra trên trình duyệt máy tính:
