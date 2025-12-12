@@ -1,0 +1,121 @@
+A. KẾT NỐI ĐIỆN THOẠI XIAOMI REDMI NOTE VỚI ANDROID STUDIO
+1. Bật Developer Options trên điện thoại
+
+Vào Settings
+
+Chọn About phone
+
+Nhấn MIUI version (hoặc HyperOS version) 7 lần
+
+Thông báo: You are now a developer
+
+2. Bật USB Debugging
+
+Vào Settings → Additional settings
+
+Chọn Developer options
+
+Bật:
+
+✅ USB debugging
+
+(Nếu có) USB debugging (Security settings)
+
+3. Kết nối với máy tính
+
+Cắm cáp USB (nên dùng cáp tốt, không chỉ sạc)
+
+Trên điện thoại hiện popup → chọn Allow USB debugging
+
+Chọn chế độ USB: File transfer (MTP)
+
+Kiểm tra nhanh
+
+Mở Android Studio → Device Manager
+
+Hoặc terminal:
+
+adb devices
+
+
+Nếu thấy:
+
+xxxxxxxx	device
+
+
+→ đã kết nối thành công
+
+B. KIỂM TRA ARCORE TRÊN ĐIỆN THOẠI (BẮT BUỘC)
+
+Khi mượn được điện thoại, làm ngay bước này trước khi code.
+
+Mở CH Play
+
+Tìm Google Play Services for AR
+
+Nếu:
+
+Cài được / đã cài → OK
+
+Không cài được → báo tôi ngay (nhưng Redmi Note 8–11 hầu như OK)
+
+C. KẾT NỐI ĐIỆN THOẠI VỚI SERVER NODE.JS (TEST LAN)
+Cách chuẩn (như mentor yêu cầu)
+Bước 1: Laptop chạy server
+node server.js
+
+
+Giả sử:
+
+Server chạy tại http://localhost:3000
+
+Bước 2: Laptop phát Wi-Fi
+
+Windows: Mobile Hotspot
+
+macOS: Internet Sharing
+
+Bước 3: Điện thoại kết nối Wi-Fi laptop
+Bước 4: Lấy IP laptop
+
+Windows:
+
+ipconfig
+
+
+macOS:
+
+ifconfig
+
+
+Ví dụ IP:
+
+192.168.137.1
+
+Bước 5: Test bằng trình duyệt điện thoại
+
+Trên điện thoại mở Chrome, vào:
+
+http://192.168.137.1:3000/api/models/tree
+
+
+Nếu thấy JSON:
+
+{ "id": "tree", "url": "http://192.168.137.1:3000/models/tree.glb" }
+
+
+→ Server OK
+
+D. CHẠY APP AR TRÊN ĐIỆN THOẠI
+
+Android Studio → chọn Run on physical device
+
+App mở:
+
+Camera bật
+
+Hiện hướng dẫn tìm mặt phẳng
+
+Di chuyển điện thoại chậm
+
+Chạm để đặt model 3D
