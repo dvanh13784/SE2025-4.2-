@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Theme mặc định của app (có thể giữ nguyên) -->
+    <style name="Theme.ARDdemoapp" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <!-- Theme AppCompat dành riêng cho MainActivity -->
+    <style name="Theme.ARDdemoapp.AppCompat" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- để trống cũng được -->
+    </style>
+
+</resources>
