@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Upload GLB Model</title>
+<style>
+    /* --- PHẦN GIAO DIỆN (CSS) --- */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background-color: #f3f4f6;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        color: #374151;
+    }
+
+    .upload-card {
+        background: white;
+        width: 100%;
+        max-width: 450px;
+        padding: 32px;
+        border-radius: 16px;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 
+                    0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+
+    h2 { margin-bottom: 8px; color: #111827; }
+    p { color: #6b7280; font-size: 14px; margin-bottom: 24px; }
+
+    .drop-zone {
+        border: 2px dashed #d1d5db;
+        border-radius: 12px;
+        padding: 40px 20px;
+        background-color: #f9fafb;
+        cursor: pointer;
+        transition: all 0.3s;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .drop-zone:hover {
+        border-color: #6366f1;
+        background-color: #eef2ff;
+    }
+
+    .drop-zone.highlight {
+        border-color: #4f46e5;
+        background-color: #e0e7ff;
+    }
+
+    .icon { font-size: 48px; margin-bottom: 12px; }
+
+    /* Input file ẩn */
+    input[type="file"] {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        opacity: 0; cursor: pointer;
+    }
+
+    .btn-upload {
+        margin-top: 24px;
+        width: 100%;
+        padding: 14px;
+        background-color: #4f46e5;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .btn-upload:hover { background-color: #4338ca; }
+    .btn-upload:disabled { background-color: #9ca3af; cursor: not-allowed; }
+
+    .file-hint { margin-top: 10px; font-size: 12px; color: #9ca3af; }
+    
+    /* Hiển thị tên file khi chọn xong */
+    #file-name-display {
+        font-weight: bold;
+        color: #4f46e5;
+        margin-top: 5px;
+        word-break: break-all;
+    }
+</style>
+</head>
+<body>
+
+    <div class="upload-card">
+        <h2>Upload 3D Model</h2>
+        <p>Tải lên file thiết kế (.glb) vào Server</p>
+        
+        <form id="uploadForm">
+            <div class="drop-zone" id="dropZone">
+                <span class="icon">☁️</span>
+                <strong id="instruction-text">Click hoặc Kéo thả file vào đây</strong>
+                <div id="file-name-display"></div> <div class="file-hint">Hỗ trợ định dạng: .GLB, .GLTF</div>
+                
+                <input type="file" name="file" id="fileInput" accept=".glb, .gltf" required>
+            </div>
+
+            <button type="submit" class="btn-upload" id="submitBtn">Tải lên Server</button>
+        </form>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const fileNameDisplay = document.getElementById('file-name-display');
+        const instructionText = document.getElementById('instruction-text');
+        const uploadForm = document.getElementById('uploadForm');
+        const submitBtn = document.getElementById('submitBtn');
+
+        // 1. Hiệu ứng hiển thị tên file khi người dùng chọn
+        fileInput.addEventListener('change', function() {
+            if (this.files && this.files.length > 0) {
+                fileNameDisplay.textContent = this.files[0].name; // Hiện tên file
+                instructionText.style.display = 'none'; // Ẩn dòng hướng dẫn đi cho gọn
+            }
+        });
+
+        // 2. Xử lý khi bấm nút "Tải lên"
+        uploadForm.addEventListener('submit', function(e) {
+            e.preventDefault(); // Chặn việc load lại trang
+
+            // Lấy file
+            const file = fileInput.files[0];
+            if (!file) {
+                alert("Vui lòng chọn file trước!");
+                return;
+            }
+
+            // Tạo dữ liệu form để gửi
+            const formData = new FormData();
+            formData.append('file', file); // 'file' là tên key mà server sẽ nhận
+
+            // Hiệu ứng đang tải...
+            submitBtn.textContent = "Đang tải lên...";
+            submitBtn.disabled = true;
+
+            // --- GỬI FILE LÊN SERVER ---
+            // Lưu ý: Thay '/upload' bằng đường dẫn API thật của bạn nếu khác
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert("✅ Upload thành công!");
+                } else {
+                    alert("❌ Lỗi Server!");
+                }
+            })
+            .catch(error => {
+                console.error('Lỗi:', error);
+                alert("❌ Không thể kết nối tới Server.");
+            })
+            .finally(() => {
+                // Trả lại trạng thái nút ban đầu
+                submitBtn.textContent = "Tải lên Server";
+                submitBtn.disabled = false;
+            });
+        });
+    </script>
+
+</body>
+</html>
