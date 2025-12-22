@@ -3,6 +3,8 @@ package com.example.ardemoapp;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
@@ -11,6 +13,8 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.ar.sceneform.AnchorNode;
+import com.google.ar.sceneform.math.Quaternion;
+import com.google.ar.sceneform.math.Vector3;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.ux.ArFragment;
 import com.google.ar.sceneform.ux.TransformableNode;
@@ -99,6 +103,67 @@ public class MainActivity extends AppCompatActivity {
 
             AnchorNode anchorNode = new AnchorNode(hitResult.createAnchor());
             anchorNode.setParent(arFragment.getArSceneView().getScene());
+            placedNodes.add(anchorNode);
+
+            placeModel(anchorNode, selectedModelUrl);
+        });
+    }
+
+    private void setupControls() {
+        scaleSeekBar.setMax(150); // 0 -> 1.5
+        rotationSeekBar.setMax(360);
+
+        scaleSeekBar.setProgress((int) (currentScale * 100));
+        rotationSeekBar.setProgress((int) (currentRotationDegrees + 180));
+
+        scaleSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                currentScale = Math.max(0.1f, progress / 100f);
+                updateLabels();
+            }
+
+            @Override public void onStartTrackingTouch(SeekBar seekBar) { }
+            @Override public void onStopTrackingTouch(SeekBar seekBar) { }
+        });
+
+        rotationSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                currentRotationDegrees = progress - 180;
+                updateLabels();
+            }
+
+            @Override public void onStartTrackingTouch(SeekBar seekBar) { }
+            @Override public void onStopTrackingTouch(SeekBar seekBar) { }
+        });
+
+        updateLabels();
+    }
+
+    private void updateLabels() {
+        scaleLabel.setText(String.format(Locale.getDefault(), "Scale: %.2fx", currentScale));
+        rotationLabel.setText(String.format(Locale.getDefault(), "Xoay: %.0f°", currentRotationDegrees));
+    }
+
+    private void loadModelList() {
+        Request request = new Request.Builder()
+                .url(MODELS_ENDPOINT)
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                runOnUiThread(() -> Toast.makeText(MainActivity.this, "Không tải được danh sách model", Toast.LENGTH_LONG).show());
+                Log.e("MODEL_LIST", "Lỗi tải danh sách", e);
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (!response.isSuccessful()) {
+                    runOnUiThread(() -> Toast.makeText(MainActivity.this, "Server trả về lỗi", Toast.LENGTH_LONG).show());
+                    return;
+                }
 
             // Gọi hàm tải và đặt model
             placeModel(anchorNode, selectedModelUrl);
@@ -166,33 +231,53 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    // Hàm này giữ nguyên logic, chỉ sửa lại thông báo lỗi rõ hơn
+    private void preloadSelectedModel() {
+        if (selectedModelUrl == null) {
+            Toast.makeText(this, "Chọn model trước", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (renderableCache.containsKey(selectedModelUrl)) {
+            Toast.makeText(this, "Model đã sẵn sàng", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Toast.makeText(this, "Đang tải trước model...", Toast.LENGTH_SHORT).show();
+        buildRenderable(selectedModelUrl, null);
+    }
+
     private void placeModel(AnchorNode anchorNode, String url) {
         Toast.makeText(this, "Đang tải model về...", Toast.LENGTH_SHORT).show();
 
+        ModelRenderable cached = renderableCache.get(url);
+        if (cached != null) {
+            attachNode(anchorNode, cached);
+            return;
+        }
+
+        buildRenderable(url, anchorNode);
+    }
+
+    private void buildRenderable(String url, AnchorNode anchorNodeIfAny) {
         ModelRenderable.builder()
                 .setSource(this, Uri.parse(url))
-                .setIsFilamentGltf(true) // 👇 QUAN TRỌNG: Thêm dòng này nếu dùng bản Sceneform mới (hỗ trợ GLB tốt hơn)
+                .setIsFilamentGltf(true)
                 .setRegistryId(url)
                 .build()
                 .thenAccept(renderable -> {
-                    Toast.makeText(this, "Tải xong! Đang hiển thị...", Toast.LENGTH_SHORT).show();
-
-                    TransformableNode node = new TransformableNode(arFragment.getTransformationSystem());
-                    node.setParent(anchorNode);
-                    node.setRenderable(renderable);
-
-                    // Chỉnh kích thước
-                    node.getScaleController().setMinScale(0.1f);
-                    node.getScaleController().setMaxScale(2.0f);
-                    node.setLocalScale(new com.google.ar.sceneform.math.Vector3(0.5f, 0.5f, 0.5f));
-
-                    node.select();
+                    renderableCache.put(url, renderable);
+                    runOnUiThread(() -> {
+                        if (anchorNodeIfAny != null) {
+                            attachNode(anchorNodeIfAny, renderable);
+                        } else {
+                            Toast.makeText(MainActivity.this, "Model đã sẵn sàng!", Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 })
                 .exceptionally(throwable -> {
                     Log.e("AR_ERROR", "Không tải được model: " + throwable.getMessage());
                     runOnUiThread(() ->
-                            Toast.makeText(this, "Lỗi: Không tải được file model.glb!", Toast.LENGTH_LONG).show()
+                            Toast.makeText(MainActivity.this, "Lỗi: Không tải được file model!", Toast.LENGTH_LONG).show()
                     );
                     return null;
                 });

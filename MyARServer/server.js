@@ -2,16 +2,16 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const cors = require('cors'); 
+const cors = require('cors');
 
 const app = express();
 const PORT = 3000;
 
-app.use(cors()); 
+app.use(cors());
 
 // Tạo thư mục uploads nếu chưa có
 const uploadDir = 'uploads';
-if (!fs.existsSync(uploadDir)){
+if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir);
 }
 
@@ -64,9 +64,22 @@ app.get('/api/models', (req, res) => {
     res.json({ models: files });
 });
 
-// --- CHO ANDROID TẢI FILE ---
+// --- XOÁ MODEL CỤ THỂ ---
+app.delete('/api/models/:name', (req, res) => {
+    const uploadsPath = path.join(__dirname, 'uploads');
+    const safeName = path.basename(req.params.name);
+    const filePath = path.join(uploadsPath, safeName);
+
+    if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ status: 'error', message: 'Không tìm thấy file' });
+    }
+
+    fs.unlinkSync(filePath);
+    return res.json({ status: 'success', message: 'Đã xoá file' });
+});
+
+// --- CHO ANDROID TẢI FILE MỚI NHẤT (LEGACY) ---
 app.get('/api/get-model', (req, res) => {
-    // 1. Log ngay khi có ai đó gọi vào
     console.log("--------------------------------");
     console.log("📞 Có thiết bị đang gọi API download...");
     console.log("👉 IP của thiết bị:", req.ip);
