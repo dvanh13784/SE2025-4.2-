@@ -6,10 +6,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.AdapterView;
-import android.widget.SeekBar;
+import android.widget.ArrayAdapter;
 import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -26,14 +24,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.TimeZone;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -47,26 +39,14 @@ public class MainActivity extends AppCompatActivity {
     private static final String MODELS_ENDPOINT = SERVER_BASE_URL + "/api/models";
 
     private ArFragment arFragment;
-    private Button btnRefresh;
-    private Button btnPreload;
-    private Button btnClear;
+    private Button btnConnect;
     private Spinner spinnerModels;
-    private SeekBar scaleSeekBar;
-    private SeekBar rotationSeekBar;
-    private TextView scaleLabel;
-    private TextView rotationLabel;
-    private TextView modelInfo;
 
     private boolean isModelReady = false;
     private String selectedModelUrl = null;
     private final List<ModelItem> modelItems = new ArrayList<>();
     private ArrayAdapter<String> spinnerAdapter;
     private final OkHttpClient client = new OkHttpClient();
-    private final Map<String, ModelRenderable> renderableCache = new HashMap<>();
-    private final List<AnchorNode> placedNodes = new ArrayList<>();
-
-    private float currentScale = 0.6f;
-    private float currentRotationDegrees = 0f;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,15 +56,8 @@ public class MainActivity extends AppCompatActivity {
         arFragment = (ArFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.ux_fragment);
 
-        btnRefresh = findViewById(R.id.btnRefresh);
-        btnPreload = findViewById(R.id.btnPreload);
-        btnClear = findViewById(R.id.btnClear);
+        btnConnect = findViewById(R.id.btnConnect);
         spinnerModels = findViewById(R.id.spinnerModels);
-        scaleSeekBar = findViewById(R.id.scaleSeekBar);
-        rotationSeekBar = findViewById(R.id.rotationSeekBar);
-        scaleLabel = findViewById(R.id.scaleLabel);
-        rotationLabel = findViewById(R.id.rotationLabel);
-        modelInfo = findViewById(R.id.modelInfo);
 
         spinnerAdapter = new ArrayAdapter<>(
                 this,
@@ -94,32 +67,29 @@ public class MainActivity extends AppCompatActivity {
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerModels.setAdapter(spinnerAdapter);
 
-        btnRefresh.setOnClickListener(v -> loadModelList());
-        btnPreload.setOnClickListener(v -> preloadSelectedModel());
-        btnClear.setOnClickListener(v -> clearPlacedModels());
+        btnConnect.setOnClickListener(v -> {
+            loadModelList();
+        });
 
-        spinnerModels.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        spinnerModels.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
             @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+            public void onItemSelected(android.widget.AdapterView<?> parent, android.view.View view, int position, long id) {
                 if (position >= 0 && position < modelItems.size()) {
-                    ModelItem item = modelItems.get(position);
-                    selectedModelUrl = item.url;
+                    selectedModelUrl = modelItems.get(position).url;
                     isModelReady = true;
-                    updateModelInfo(item);
                 }
             }
 
             @Override
-            public void onNothingSelected(AdapterView<?> parent) {
+            public void onNothingSelected(android.widget.AdapterView<?> parent) {
                 selectedModelUrl = null;
                 isModelReady = false;
-                modelInfo.setText("Chưa chọn model");
             }
         });
 
-        setupControls();
         loadModelList();
 
+        // Chạm mặt phẳng để đặt model
         arFragment.setOnTapArPlaneListener((hitResult, plane, motionEvent) -> {
             if (!isModelReady) {
                 Toast.makeText(this, "Chưa sẵn sàng...", Toast.LENGTH_SHORT).show();
@@ -195,6 +165,30 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
 
+            // Gọi hàm tải và đặt model
+            placeModel(anchorNode, selectedModelUrl);
+        });
+    }
+
+    private void loadModelList() {
+        Request request = new Request.Builder()
+                .url(MODELS_ENDPOINT)
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                runOnUiThread(() -> Toast.makeText(MainActivity.this, "Không tải được danh sách model", Toast.LENGTH_LONG).show());
+                Log.e("MODEL_LIST", "Lỗi tải danh sách", e);
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (!response.isSuccessful()) {
+                    runOnUiThread(() -> Toast.makeText(MainActivity.this, "Server trả về lỗi", Toast.LENGTH_LONG).show());
+                    return;
+                }
+
                 final String body = response.body().string();
                 try {
                     JSONObject jsonObject = new JSONObject(body);
@@ -207,9 +201,7 @@ public class MainActivity extends AppCompatActivity {
                         JSONObject item = modelsArray.getJSONObject(i);
                         String name = item.getString("name");
                         String url = item.getString("url");
-                        long size = item.optLong("size", 0);
-                        String uploadedAt = item.optString("uploadedAt", "");
-                        loadedItems.add(new ModelItem(name, url, size, uploadedAt));
+                        loadedItems.add(new ModelItem(name, url));
                         names.add(name);
                     }
 
@@ -223,14 +215,12 @@ public class MainActivity extends AppCompatActivity {
 
                         if (!modelItems.isEmpty()) {
                             spinnerModels.setSelection(0);
-                            ModelItem first = modelItems.get(0);
-                            selectedModelUrl = first.url;
+                            selectedModelUrl = modelItems.get(0).url;
                             isModelReady = true;
-                            updateModelInfo(first);
                         } else {
                             selectedModelUrl = null;
                             isModelReady = false;
-                            modelInfo.setText("Chưa có model nào, hãy upload lên server");
+                            Toast.makeText(MainActivity.this, "Chưa có model nào, hãy upload lên server", Toast.LENGTH_LONG).show();
                         }
                     });
                 } catch (JSONException e) {
@@ -293,76 +283,13 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-    private void attachNode(AnchorNode anchorNode, ModelRenderable renderable) {
-        TransformableNode node = new TransformableNode(arFragment.getTransformationSystem());
-        node.setParent(anchorNode);
-        node.setRenderable(renderable);
-
-        Vector3 scaleVector = new Vector3(currentScale, currentScale, currentScale);
-        node.setLocalScale(scaleVector);
-
-        Quaternion rotation = Quaternion.axisAngle(Vector3.up(), currentRotationDegrees);
-        node.setLocalRotation(rotation);
-
-        node.getScaleController().setMinScale(0.1f);
-        node.getScaleController().setMaxScale(3.0f);
-
-        node.select();
-    }
-
-    private void clearPlacedModels() {
-        for (AnchorNode node : placedNodes) {
-            if (node.getParent() != null) {
-                node.setParent(null);
-            }
-        }
-        placedNodes.clear();
-        Toast.makeText(this, "Đã xoá mọi vật thể", Toast.LENGTH_SHORT).show();
-    }
-
-    private void updateModelInfo(ModelItem item) {
-        String sizeText = formatSize(item.sizeBytes);
-        String timeText = formatDate(item.uploadedAt);
-        String info = "Tên: " + item.name + "\n" +
-                "Kích thước: " + sizeText + "\n" +
-                "Tải lên: " + timeText;
-        modelInfo.setText(info);
-    }
-
-    private String formatSize(long sizeBytes) {
-        if (sizeBytes <= 0) return "Không rõ";
-        String[] units = {"B", "KB", "MB", "GB"};
-        int unitIndex = (int) (Math.log10(sizeBytes) / Math.log10(1024));
-        unitIndex = Math.min(unitIndex, units.length - 1);
-        double scaled = sizeBytes / Math.pow(1024, unitIndex);
-        return String.format(Locale.getDefault(), "%.2f %s", scaled, units[unitIndex]);
-    }
-
-    private String formatDate(String isoString) {
-        if (isoString == null || isoString.isEmpty()) return "Không rõ";
-        try {
-            SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault());
-            isoFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-            Date parsed = isoFormat.parse(isoString);
-            if (parsed == null) return "Không rõ";
-            SimpleDateFormat output = new SimpleDateFormat("HH:mm dd/MM/yyyy", Locale.getDefault());
-            return output.format(parsed);
-        } catch (Exception e) {
-            return isoString;
-        }
-    }
-
     private static class ModelItem {
         final String name;
         final String url;
-        final long sizeBytes;
-        final String uploadedAt;
 
-        ModelItem(String name, String url, long sizeBytes, String uploadedAt) {
+        ModelItem(String name, String url) {
             this.name = name;
             this.url = url;
-            this.sizeBytes = sizeBytes;
-            this.uploadedAt = uploadedAt;
         }
     }
 }

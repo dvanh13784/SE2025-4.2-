@@ -56,16 +56,10 @@ app.get('/api/models', (req, res) => {
     const uploadsPath = path.join(__dirname, 'uploads');
     const files = fs.readdirSync(uploadsPath)
         .filter(file => file.endsWith('.glb') || file.endsWith('.gltf'))
-        .map(file => {
-            const stats = fs.statSync(path.join(uploadsPath, file));
-            return {
-                name: file,
-                url: `${req.protocol}://${req.get('host')}/uploads/${file}`,
-                size: stats.size,
-                uploadedAt: stats.mtime.toISOString()
-            };
-        })
-        .sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
+        .map(file => ({
+            name: file,
+            url: `${req.protocol}://${req.get('host')}/uploads/${file}`
+        }));
 
     res.json({ models: files });
 });
@@ -102,9 +96,11 @@ app.get('/api/get-model', (req, res) => {
     const latestFile = glbFiles.length > 0 ? glbFiles[0].name : null;
     const filePath = latestFile ? path.join(uploadsPath, latestFile) : null;
 
+    // 2. Kiểm tra file
     if (filePath && fs.existsSync(filePath)) {
         console.log(`✅ Tìm thấy file ${latestFile}, đang gửi đi...`);
 
+        // Thêm xử lý lỗi nếu gửi thất bại
         res.download(filePath, latestFile, (err) => {
             if (err) {
                 console.log("❌ Lỗi khi đang gửi file:", err);

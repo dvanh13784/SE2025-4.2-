@@ -160,8 +160,9 @@
         <form id="uploadForm">
             <div class="drop-zone" id="dropZone">
                 <span class="icon">☁️</span>
-                <strong id="instruction-text">Click hoặc thả file vào đây</strong>
-                <div class="file-meta" id="file-name-display">Chưa chọn file</div>
+                <strong id="instruction-text">Click hoặc Kéo thả file vào đây</strong>
+                <div id="file-name-display"></div> <div class="file-hint">Có thể chọn nhiều file .GLB, .GLTF</div>
+
                 <input type="file" name="files" id="fileInput" accept=".glb, .gltf" multiple required>
             </div>
 
@@ -169,51 +170,35 @@
         </form>
     </div>
 
-    <div class="card">
-        <h2>🧭 Quản lý &amp; xem trước</h2>
-        <p>Xem trước trực tiếp, copy link, xoá model cũ.</p>
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const fileNameDisplay = document.getElementById('file-name-display');
+        const instructionText = document.getElementById('instruction-text');
+        const uploadForm = document.getElementById('uploadForm');
+        const submitBtn = document.getElementById('submitBtn');
+
+        // 1. Hiệu ứng hiển thị tên file khi người dùng chọn
+        fileInput.addEventListener('change', function() {
+            if (this.files && this.files.length > 0) {
+                const names = Array.from(this.files).map(f => f.name).join(', ');
+                fileNameDisplay.textContent = names;
+                instructionText.style.display = 'none';
+            }
+        });
 
         <model-viewer id="viewer" camera-controls auto-rotate ar ar-modes="webxr scene-viewer quick-look" shadow-intensity="1" exposure="0.9">
         </model-viewer>
 
-        <div class="grid" style="margin-top:14px;">
-            <button class="chip-btn" id="btnRefresh">Làm mới danh sách</button>
-            <button class="chip-btn" id="btnCopy">Copy link đang xem</button>
-        </div>
+            // Lấy file
+            const files = fileInput.files;
+            if (!files || files.length === 0) {
+                alert("Vui lòng chọn file trước!");
+                return;
+            }
 
-        <div class="file-list" id="fileList"></div>
-    </div>
-</div>
-
-<script>
-    const fileInput = document.getElementById('fileInput');
-    const fileNameDisplay = document.getElementById('file-name-display');
-    const instructionText = document.getElementById('instruction-text');
-    const uploadForm = document.getElementById('uploadForm');
-    const submitBtn = document.getElementById('submitBtn');
-    const dropZone = document.getElementById('dropZone');
-    const fileList = document.getElementById('fileList');
-    const viewer = document.getElementById('viewer');
-    const btnRefresh = document.getElementById('btnRefresh');
-    const btnCopy = document.getElementById('btnCopy');
-
-    let models = [];
-    let currentModel = null;
-
-    const formatSize = (bytes) => {
-        if (bytes === 0) return '0 B';
-        const k = 1024;
-        const sizes = ['B', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`;
-    };
-
-    function renderList() {
-        fileList.innerHTML = '';
-        if (models.length === 0) {
-            fileList.innerHTML = '<div class="file-meta">Chưa có model nào, hãy upload!</div>';
-            return;
-        }
+            // Tạo dữ liệu form để gửi
+            const formData = new FormData();
+            Array.from(files).forEach(file => formData.append('files', file));
 
         models.forEach((model) => {
             const row = document.createElement('div');
