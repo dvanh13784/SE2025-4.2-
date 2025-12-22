@@ -131,14 +131,4 @@ xoay
 
 (tuỳ chọn) di chuyển/đặt lại
 
-👉 Nếu bạn đạt 3 ý này trên máy thật, thì thỏa mãn yêu cầu đề tài Client–Server AR.
 
-Tiêu chí “đạt” của project (chốt ngắn gọn)
-
-Bạn chỉ cần chứng minh được:
-
-Server Node.js cung cấp model .glb và API trả URL
-
-Android app gọi API lấy URL model
-
-Android ARCore tải model từ URL và hiển thị trong AR + tương tác cơ bản
