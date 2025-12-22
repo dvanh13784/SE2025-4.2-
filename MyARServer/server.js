@@ -15,15 +15,15 @@ if (!fs.existsSync(uploadDir)){
     fs.mkdirSync(uploadDir);
 }
 
-// Tìm đoạn code khai báo storage (kho lưu trữ)
+// Lưu file với tên gốc kèm timestamp để tránh đè lên nhau
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'uploads/') // Thư mục lưu
+        cb(null, 'uploads/');
     },
     filename: function (req, file, cb) {
-        // 👇 BÍ KÍP LÀ Ở ĐÂY 👇
-        // Thay vì dùng file.originalname (tên gốc), ta ép nó thành tên cố định
-        cb(null, 'model.glb'); 
+        const timePrefix = Date.now();
+        const safeName = file.originalname.replace(/[^a-zA-Z0-9_.-]/g, '_');
+        cb(null, `${timePrefix}-${safeName}`);
     }
 });
 
@@ -33,20 +33,35 @@ app.use(express.static('public'));
 app.use('/uploads', express.static('uploads'));
 
 // --- XỬ LÝ UPLOAD ---
-app.post('/upload', upload.single('file'), (req, res) => {
-    // Log để kiểm tra
+app.post('/upload', upload.array('files'), (req, res) => {
     console.log("--------------------------------");
     console.log("📥 Đang nhận yêu cầu upload...");
 
-    if (!req.file) {
+    if (!req.files || req.files.length === 0) {
         console.log("❌ Lỗi: Không thấy file đâu cả!");
         return res.status(400).json({ status: 'error', message: 'Thiếu file' });
     }
 
-    console.log("✅ Đã lưu file thành công: model.glb");
-    
-    // Quan trọng: Trả về JSON chuẩn 200 OK
-    return res.status(200).json({ status: 'success', message: 'Upload thành công!' });
+    const uploadedFiles = req.files.map(file => ({
+        name: file.filename,
+        url: `${req.protocol}://${req.get('host')}/uploads/${file.filename}`
+    }));
+
+    console.log(`✅ Đã lưu ${uploadedFiles.length} file`);
+    return res.status(200).json({ status: 'success', message: 'Upload thành công!', files: uploadedFiles });
+});
+
+// --- LẤY DANH SÁCH MODEL ---
+app.get('/api/models', (req, res) => {
+    const uploadsPath = path.join(__dirname, 'uploads');
+    const files = fs.readdirSync(uploadsPath)
+        .filter(file => file.endsWith('.glb') || file.endsWith('.gltf'))
+        .map(file => ({
+            name: file,
+            url: `${req.protocol}://${req.get('host')}/uploads/${file}`
+        }));
+
+    res.json({ models: files });
 });
 
 // --- CHO ANDROID TẢI FILE ---
@@ -56,14 +71,24 @@ app.get('/api/get-model', (req, res) => {
     console.log("📞 Có thiết bị đang gọi API download...");
     console.log("👉 IP của thiết bị:", req.ip);
 
-    const filePath = path.join(__dirname, 'uploads', 'model.glb');
-    
+    const uploadsPath = path.join(__dirname, 'uploads');
+    const glbFiles = fs.readdirSync(uploadsPath)
+        .filter(file => file.endsWith('.glb') || file.endsWith('.gltf'))
+        .map(file => ({
+            name: file,
+            time: fs.statSync(path.join(uploadsPath, file)).mtimeMs
+        }))
+        .sort((a, b) => b.time - a.time);
+
+    const latestFile = glbFiles.length > 0 ? glbFiles[0].name : null;
+    const filePath = latestFile ? path.join(uploadsPath, latestFile) : null;
+
     // 2. Kiểm tra file
-    if (fs.existsSync(filePath)) {
-        console.log("✅ Tìm thấy file model.glb, đang gửi đi...");
-        
+    if (filePath && fs.existsSync(filePath)) {
+        console.log(`✅ Tìm thấy file ${latestFile}, đang gửi đi...`);
+
         // Thêm xử lý lỗi nếu gửi thất bại
-        res.download(filePath, 'model.glb', (err) => {
+        res.download(filePath, latestFile, (err) => {
             if (err) {
                 console.log("❌ Lỗi khi đang gửi file:", err);
             } else {
