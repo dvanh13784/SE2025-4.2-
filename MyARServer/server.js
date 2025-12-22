@@ -102,5 +102,8 @@ app.get('/api/get-model', (req, res) => {
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Server đang chạy tại: http://localhost:${PORT}`);
+  console.log(`🚀 Server listening on 0.0.0.0:${PORT}`);
+  console.log(`👉 Local test:  http://127.0.0.1:${PORT}/`);
+  console.log(`👉 LAN test:    http://10.128.0.17:${PORT}/  (nếu IP nội bộ của server là 10.128.0.17)`);
+  console.log(`👉 Public test: http://136.111.208.187:${PORT}/  (chỉ hoạt động nếu firewall/NAT mở port)`);
 });
