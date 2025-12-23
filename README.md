@@ -83,15 +83,7 @@ Chế độ B — Máy thật (kết quả cuối cùng của project)
 
 Đây là phần bắt buộc để “đạt” đề tài AR.
 
-Bước 5B. Đổi BASE_URL sang IP của PC
 
-Ví dụ:
-
-BASE_URL = "http://192.168.1.10:3000/";
-
-Bước 6B. Cho điện thoại và PC cùng mạng
-
-Laptop phát Wi-Fi hoặc cùng router
 
 
 
