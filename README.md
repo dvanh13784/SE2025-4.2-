@@ -1,5 +1,5 @@
-📱 Ứng dụng Thực tế tăng cường (AR) Android
-Kiến trúc Client–Server – Hiển thị mô hình 3D (.glb) bằng ARCore
+**📱 Ứng dụng Thực tế tăng cường (AR) Android
+Kiến trúc Client–Server – Hiển thị mô hình 3D (.glb) bằng ARCore**
 
 Môn học: Công nghệ phần mềm / Thực tế tăng cường
 Đề tài: Xây dựng ứng dụng AR Android hiển thị mô hình 3D từ Server
