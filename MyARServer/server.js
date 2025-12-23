@@ -7,6 +7,9 @@ const cors = require('cors');
 const app = express();
 const PORT = 3000;
 
+// --- ĐẶT SERVER_IP LÊN TRÊN ---
+const SERVER_IP = "136.111.208.187";
+
 app.use(cors()); 
 app.use(express.static('public'));
 app.use('/uploads', express.static('uploads'));
@@ -23,7 +26,6 @@ const storage = multer.diskStorage({
         cb(null, 'uploads/');
     },
     filename: function (req, file, cb) {
-        // Giữ timestamp để tên file luôn là duy nhất
         const timePrefix = Date.now();
         const safeName = file.originalname.replace(/[^a-zA-Z0-9_.-]/g, '_');
         cb(null, `${timePrefix}-${safeName}`);
@@ -31,7 +33,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// --- API 1: UPLOAD FILE (Giữ nguyên logic cũ) ---
+// --- API 1: UPLOAD FILE ---
 app.post('/upload', upload.array('files'), (req, res) => {
     if (!req.files || req.files.length === 0) {
         return res.status(400).json({ status: 'error', message: 'Thiếu file' });
@@ -39,7 +41,7 @@ app.post('/upload', upload.array('files'), (req, res) => {
     return res.status(200).json({ status: 'success', message: 'Upload thành công!' });
 });
 
-// --- API 2: LẤY DANH SÁCH CHI TIẾT (Cho Web Quản Lý) ---
+// --- API 2: LẤY DANH SÁCH MODEL ---
 app.get('/api/models', (req, res) => {
     try {
         const files = fs.readdirSync(uploadDir)
@@ -52,7 +54,7 @@ app.get('/api/models', (req, res) => {
                     size: (stats.size / 1024 / 1024).toFixed(2) + ' MB',
                     date: new Date(stats.mtime).toLocaleString('vi-VN'),
                     timestamp: stats.mtimeMs,
-                    url: `http://${SERVER_IP}:${PORT}/uploads/${file}`  // <-- Sửa đúng ở đây
+                    url: `http://${SERVER_IP}:${PORT}/uploads/${file}`  // URL CHUẨN
                 };
             })
             .sort((a, b) => b.timestamp - a.timestamp);
@@ -63,12 +65,11 @@ app.get('/api/models', (req, res) => {
     }
 });
 
-// --- API 3: XÓA FILE (Mới thêm) ---
+// --- API 3: XÓA FILE ---
 app.delete('/api/files/:filename', (req, res) => {
     const filename = req.params.filename;
     const filePath = path.join(uploadDir, filename);
 
-    // Bảo mật: Không cho phép xóa file nằm ngoài thư mục uploads
     if (filename.includes('..') || filename.includes('/')) {
         return res.status(400).json({ error: 'Tên file không hợp lệ' });
     }
@@ -86,7 +87,7 @@ app.delete('/api/files/:filename', (req, res) => {
     }
 });
 
-// --- API 4: CHO ANDROID TẢI FILE MỚI NHẤT (Giữ nguyên logic cũ của bạn) ---
+// --- API 4: LẤY FILE MỚI NHẤT CHO ANDROID ---
 app.get('/api/get-model', (req, res) => {
     console.log("👉 Android đang yêu cầu tải model mới nhất...");
     const glbFiles = fs.readdirSync(uploadDir)
@@ -106,9 +107,6 @@ app.get('/api/get-model', (req, res) => {
     }
 });
 
-const SERVER_IP = "136.111.208.187";
-
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Server quản lý đang chạy tại: http://${SERVER_IP}/`);
-
+// --- START SERVER ---
+app.listen(PORT, '0.0.0.0', () => { console.log(`🚀 Server quản lý đang chạy tại: http://${SERVER_IP}/`);
 });
