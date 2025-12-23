@@ -5,7 +5,7 @@ const fs = require('fs');
 const cors = require('cors');
 
 const app = express();
-const PORT = 3000; // Server chạy cổng 3000
+const PORT = 80
 const SERVER_IP = "136.111.208.187";
 
 // Middleware
@@ -115,6 +115,6 @@ app.get('/api/get-model', (req, res) => {
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`------------------------------------------------`);
     console.log(`✅ Server đang chạy ổn định!`);
-    console.log(`👉 Truy cập Web tại đây: http://${SERVER_IP}:${PORT}`); // Thêm cổng vào log
+    console.log(`👉 Truy cập Web tại đây: http://${SERVER_IP}`);
     console.log(`------------------------------------------------`);
 });
