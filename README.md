@@ -93,6 +93,26 @@ http://136.111.208.187
 
 ---
 
+##### Chức năng giao diện Web:
+- Kéo thả file `.glb / .gltf` để upload
+- Chọn file từ máy tính
+- Hiển thị:
+  - Tên file
+  - Kích thước
+  - Thời điểm upload
+- Upload **nhiều model cùng lúc**
+- Kiểm soát dữ liệu server **không cần SSH**
+
+👉 Giao diện này đóng vai trò **Admin Panel đơn giản** cho AR Server.
+
+---
+
+#### 🔌 REST API cung cấp cho Android Client
+
+##### 1️⃣ Lấy danh sách model
+```http
+GET /api/models
+
 ### 3.2 📱 Ứng dụng Android AR
 
 Ứng dụng Android đóng vai trò **client AR**, chịu trách nhiệm hiển thị và tương tác với mô hình 3D.
