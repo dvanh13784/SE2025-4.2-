@@ -2,21 +2,20 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const cors = require('cors'); 
+const cors = require('cors');
 
 const app = express();
 const PORT = 3000;
-
-// --- ĐẶT SERVER_IP LÊN TRÊN ---
 const SERVER_IP = "136.111.208.187";
 
-app.use(cors()); 
+// Middleware
+app.use(cors());
 app.use(express.static('public'));
 app.use('/uploads', express.static('uploads'));
 
 // Tạo thư mục uploads nếu chưa có
 const uploadDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadDir)){
+if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir);
 }
 
@@ -31,14 +30,21 @@ const storage = multer.diskStorage({
         cb(null, `${timePrefix}-${safeName}`);
     }
 });
+
 const upload = multer({ storage: storage });
 
 // --- API 1: UPLOAD FILE ---
 app.post('/upload', upload.array('files'), (req, res) => {
     if (!req.files || req.files.length === 0) {
-        return res.status(400).json({ status: 'error', message: 'Thiếu file' });
+        return res.status(400).json({
+            status: 'error',
+            message: 'Thiếu file'
+        });
     }
-    return res.status(200).json({ status: 'success', message: 'Upload thành công!' });
+    return res.status(200).json({
+        status: 'success',
+        message: 'Upload thành công!'
+    });
 });
 
 // --- API 2: LẤY DANH SÁCH MODEL ---
@@ -49,15 +55,16 @@ app.get('/api/models', (req, res) => {
             .map(file => {
                 const filePath = path.join(uploadDir, file);
                 const stats = fs.statSync(filePath);
+
                 return {
                     name: file,
                     size: (stats.size / 1024 / 1024).toFixed(2) + ' MB',
                     date: new Date(stats.mtime).toLocaleString('vi-VN'),
                     timestamp: stats.mtimeMs,
-                    url: `http://${SERVER_IP}:${PORT}/uploads/${file}`  // URL CHUẨN
+                    url: `${req.protocol}://${req.get('host')}/uploads/${file}`
                 };
             })
-            .sort((a, b) => b.timestamp - a.timestamp);
+            .sort((a, b) => b.timestamp - a.timestamp); // File mới nhất lên đầu
 
         res.json({ models: files });
     } catch (error) {
@@ -87,9 +94,10 @@ app.delete('/api/files/:filename', (req, res) => {
     }
 });
 
-// --- API 4: LẤY FILE MỚI NHẤT CHO ANDROID ---
+// --- API 4: ANDROID LẤY FILE MỚI NHẤT ---
 app.get('/api/get-model', (req, res) => {
-    console.log("👉 Android đang yêu cầu tải model mới nhất...");
+    console.log("👉 Android đang yêu cầu model mới nhất...");
+
     const glbFiles = fs.readdirSync(uploadDir)
         .filter(file => file.endsWith('.glb') || file.endsWith('.gltf'))
         .map(file => ({
@@ -99,7 +107,7 @@ app.get('/api/get-model', (req, res) => {
         .sort((a, b) => b.time - a.time);
 
     const latestFile = glbFiles.length > 0 ? glbFiles[0].name : null;
-    
+
     if (latestFile) {
         res.download(path.join(uploadDir, latestFile), latestFile);
     } else {
@@ -107,6 +115,6 @@ app.get('/api/get-model', (req, res) => {
     }
 });
 
-// --- START SERVER ---
+// --- KHỞI ĐỘNG SERVER ---
 app.listen(PORT, '0.0.0.0', () => { console.log(`🚀 Server quản lý đang chạy tại: http://${SERVER_IP}/`);
 });
