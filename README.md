@@ -127,7 +127,7 @@ http://136.111.208.187
 #### 🔧 Khác
 - Xử lý lỗi khi tải model
 - Hỗ trợ HTTP (`usesCleartextTraffic`)
-- Kiểm thử trên **thiết bị thật**
+- Kiểm thử trên **thiết bị thật:  Xiaomi Redmi Note 11S**
 
 ---
 
