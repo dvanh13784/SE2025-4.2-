@@ -26,7 +26,7 @@ Công nghệ: Android • ARCore • Sceneform • Node.js • Nginx
 
 9. Kết luận
 
-1. Tổng quan đề tài
+**1. Tổng quan đề tài**
 
 Đề tài tập trung xây dựng một hệ thống Thực tế tăng cường (Augmented Reality – AR) theo kiến trúc Client–Server, trong đó:
 
@@ -44,7 +44,7 @@ Giáo dục – mô phỏng 3D
 
 Triển lãm và demo công nghệ
 
-2. Goals – Mục tiêu tổng quát
+**2. Goals – Mục tiêu tổng quát**
 🎯 Mục tiêu chung
 
 Xây dựng thành công một ứng dụng AR Android hoàn chỉnh, trong đó:
@@ -65,7 +65,7 @@ Kết nối Android ↔ Server qua HTTP
 
 Triển khai và kiểm thử trên server thật (public)
 
-3. Objectives – Mục tiêu chi tiết
+**3. Objectives – Mục tiêu chi tiết**
 3.1 🖥️ Backend Server (Node.js)
 
 Backend là trung tâm quản lý dữ liệu mô hình 3D.
@@ -95,7 +95,7 @@ Mở cổng và cấu hình firewall
 🌐 Server public
 http://136.111.208.187
 
-3.2 📱 Ứng dụng Android AR
+**3.2 📱 Ứng dụng Android AR**
 
 Ứng dụng Android là client AR, chịu trách nhiệm hiển thị và tương tác.
 
@@ -127,7 +127,7 @@ Hỗ trợ HTTP (usesCleartextTraffic)
 
 Kiểm thử trên thiết bị thật
 
-3.3 🧠 Tương tác AR
+**3.3 🧠 Tương tác AR**
 Đã triển khai
 
 Hướng dẫn quét mặt phẳng
@@ -150,7 +150,7 @@ Chụp ảnh / quay video AR
 
 Lưu & khôi phục scene
 
-4. Kiến trúc hệ thống
+**4. Kiến trúc hệ thống**
 🧩 Sơ đồ kiến trúc
 Ứng dụng Android AR
         |
@@ -165,7 +165,7 @@ Lưu & khôi phục scene
         v
    uploads/ (.glb files)
 
-5. Môi trường phát triển & kiểm thử
+**5. Môi trường phát triển & kiểm thử**
 🖥️ Server
 
 OS: Linux
@@ -188,12 +188,12 @@ Ngôn ngữ: Java + XML
 
 AR Framework: ARCore + Sceneform
 
-6. Vấn đề gặp phải & cách giải quyết
+**6. Vấn đề gặp phải & cách giải quyế**t
 Vấn đề	Nguyên nhân	Giải pháp
 App crash	Xung đột ARCore – Sceneform	Tắt Light Estimation
 Upload lỗi	Giới hạn Nginx	Cấu hình client_max_body_size
 App không load server	Sai port/IP	Dùng Nginx + port 80
-7. Kết quả đạt được
+**7. Kết quả đạt được**
 
 ✅ Hoàn thiện hệ thống AR Client–Server
 ✅ Load mô hình 3D từ server thật
@@ -201,7 +201,7 @@ App không load server	Sai port/IP	Dùng Nginx + port 80
 ✅ Tương tác mượt mà
 ✅ Kiến trúc rõ ràng, dễ mở rộng
 
-8. Hướng phát triển tương lai
+**8. Hướng phát triển tương lai**
 
 Metadata cho model (scale, rotation)
 
@@ -215,7 +215,7 @@ HTTPS
 
 Tối ưu hiệu năng
 
-9. Kết luận
+**9. Kết luận**
 
 Đề tài đã triển khai thành công một ứng dụng AR Android theo kiến trúc Client–Server, kết hợp giữa ARCore, Android và Backend Server.
 Hệ thống đáp ứng đầy đủ yêu cầu học thuật và có khả năng mở rộng cho các ứng dụng AR thực tế.
