@@ -1,35 +1,114 @@
 const express = require('express');
-const app = express();
+const multer = require('multer');
 const path = require('path');
-const ip = require('ip'); // Thư viện lấy IP tự động
+const fs = require('fs');
+const cors = require('cors'); 
 
+const app = express();
 const PORT = 3000;
 
-// Cấu hình để thư mục 'public' chứa file 3D cho bên ngoài truy cập
-app.use('/models', express.static(path.join(__dirname, 'public')));
+app.use(cors()); 
+app.use(express.static('public'));
+app.use('/uploads', express.static('uploads'));
 
-// API để App Android gọi vào lấy link
-app.get('/api/get-model', (req, res) => {
-    // Tự động lấy IP của máy tính (Laptop)
-    const myIp = ip.address(); 
-    
-    // Tạo đường dẫn đầy đủ đến file 3D
-    const modelUrl = `http://${myIp}:${PORT}/models/my_model.glb`;
-    
-    console.log("--> Có điện thoại vừa gọi lấy model!");
-    console.log("--> Trả về link: " + modelUrl);
-    
-    // Trả về dữ liệu dạng JSON cho Android
-    res.json({
-        name: "Mô hình 3D Demo",
-        url: modelUrl
-    });
+// Tạo thư mục uploads nếu chưa có
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)){
+    fs.mkdirSync(uploadDir);
+}
+
+// --- CẤU HÌNH UPLOAD ---
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/');
+    },
+    filename: function (req, file, cb) {
+        // Giữ timestamp để tên file luôn là duy nhất
+        const timePrefix = Date.now();
+        const safeName = file.originalname.replace(/[^a-zA-Z0-9_.-]/g, '_');
+        cb(null, `${timePrefix}-${safeName}`);
+    }
+});
+const upload = multer({ storage: storage });
+
+// --- API 1: UPLOAD FILE (Giữ nguyên logic cũ) ---
+app.post('/upload', upload.array('files'), (req, res) => {
+    if (!req.files || req.files.length === 0) {
+        return res.status(400).json({ status: 'error', message: 'Thiếu file' });
+    }
+    return res.status(200).json({ status: 'success', message: 'Upload thành công!' });
 });
 
-// Khởi động server
-app.listen(PORT, () => {
-    console.log("---------------------------------------------------");
-    console.log(`Server ĐÃ CHẠY THÀNH CÔNG!`);
-    console.log(`Địa chỉ server: http://${ip.address()}:${PORT}`);
-    console.log("---------------------------------------------------");
+// --- API 2: LẤY DANH SÁCH CHI TIẾT (Cho Web Quản Lý) ---
+app.get('/api/models', (req, res) => {
+    try {
+        const files = fs.readdirSync(uploadDir)
+            .filter(file => file.endsWith('.glb') || file.endsWith('.gltf'))
+            .map(file => {
+                const filePath = path.join(uploadDir, file);
+                const stats = fs.statSync(filePath);
+                return {
+                    name: file,
+                    size: (stats.size / 1024 / 1024).toFixed(2) + ' MB',
+                    date: new Date(stats.mtime).toLocaleString('vi-VN'),
+                    timestamp: stats.mtimeMs,
+                    url: `http://${SERVER_IP}:${PORT}/uploads/${file}`  // <-- Sửa đúng ở đây
+                };
+            })
+            .sort((a, b) => b.timestamp - a.timestamp);
+
+        res.json({ models: files });
+    } catch (error) {
+        res.status(500).json({ error: 'Lỗi đọc thư mục' });
+    }
+});
+
+// --- API 3: XÓA FILE (Mới thêm) ---
+app.delete('/api/files/:filename', (req, res) => {
+    const filename = req.params.filename;
+    const filePath = path.join(uploadDir, filename);
+
+    // Bảo mật: Không cho phép xóa file nằm ngoài thư mục uploads
+    if (filename.includes('..') || filename.includes('/')) {
+        return res.status(400).json({ error: 'Tên file không hợp lệ' });
+    }
+
+    if (fs.existsSync(filePath)) {
+        try {
+            fs.unlinkSync(filePath);
+            console.log(`🗑️ Đã xóa file: ${filename}`);
+            res.json({ success: true, message: `Đã xóa ${filename}` });
+        } catch (e) {
+            res.status(500).json({ error: 'Lỗi khi xóa file' });
+        }
+    } else {
+        res.status(404).json({ error: 'File không tồn tại' });
+    }
+});
+
+// --- API 4: CHO ANDROID TẢI FILE MỚI NHẤT (Giữ nguyên logic cũ của bạn) ---
+app.get('/api/get-model', (req, res) => {
+    console.log("👉 Android đang yêu cầu tải model mới nhất...");
+    const glbFiles = fs.readdirSync(uploadDir)
+        .filter(file => file.endsWith('.glb') || file.endsWith('.gltf'))
+        .map(file => ({
+            name: file,
+            time: fs.statSync(path.join(uploadDir, file)).mtimeMs
+        }))
+        .sort((a, b) => b.time - a.time);
+
+    const latestFile = glbFiles.length > 0 ? glbFiles[0].name : null;
+    
+    if (latestFile) {
+        res.download(path.join(uploadDir, latestFile), latestFile);
+    } else {
+        res.status(404).send("Chưa có file nào.");
+    }
+});
+
+const SERVER_IP = "136.111.208.187";
+
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Server quản lý đang chạy tại: http://${SERVER_IP}/`);
+
 });
