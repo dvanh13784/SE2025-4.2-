@@ -93,21 +93,7 @@ Bước 6B. Cho điện thoại và PC cùng mạng
 
 Laptop phát Wi-Fi hoặc cùng router
 
-Bước 7B. Test bằng Chrome trên điện thoại (trước khi chạy app)
 
-Mở:
-
-http://192.168.1.10:3000/api/models/tree
-
-Kết quả đúng cần thấy
-
-Điện thoại thấy JSON trả về (không timeout)
-
-Bước 8B. Run app từ Android Studio lên điện thoại
-
-Cắm USB debugging
-
-Android Studio → Run → chọn thiết bị thật
 
 
 
