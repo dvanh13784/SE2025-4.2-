@@ -77,3 +77,124 @@ Backend đóng vai trò **trung tâm quản lý mô hình 3D**.
 http://136.111.208.187
 <img width="1763" height="919" alt="image" src="https://github.com/user-attachments/assets/49db8b29-8c36-4f71-b6bc-5667aa3c7210" />
 
+---
+
+### 3.2 📱 Ứng dụng Android AR
+
+Ứng dụng Android đóng vai trò **client AR**, chịu trách nhiệm hiển thị và tương tác với mô hình 3D.
+
+#### ✔ Các chức năng đã hoàn thành
+- Kết nối server, lấy danh sách model
+- Hiển thị danh sách model cho người dùng chọn
+- Tải model từ server bằng URL
+- Nhận diện mặt phẳng (plane detection)
+- Đặt model trong không gian thực
+- Đặt **nhiều model** trong một phiên
+
+#### 🖐 Tương tác người dùng
+- Di chuyển model  
+- Xoay model  
+- Phóng to / thu nhỏ  
+
+#### 🔧 Khác
+- Xử lý lỗi khi tải model
+- Hỗ trợ HTTP (`usesCleartextTraffic`)
+- Kiểm thử trên **thiết bị thật**
+
+---
+
+### 3.3 🧠 Tương tác AR
+
+#### ✔ Đã triển khai
+- Hướng dẫn quét mặt phẳng
+- Đặt model bằng thao tác chạm
+- Điều chỉnh kích thước model
+
+#### 🚀 Có thể mở rộng
+- Chọn / xoá model
+- Thay thế model
+- Xem trước model
+- Đo khoảng cách
+- Chụp ảnh / quay video AR
+- Lưu & khôi phục AR Scene
+
+---
+
+## 4. Kiến trúc hệ thống
+
+### 🧩 Sơ đồ kiến trúc
+
+Android AR App
+|
+| HTTP REST API
+v
+Nginx (Port 80)
+|
+| Reverse Proxy
+v
+Node.js Server (Port 3000)
+|
+v
+uploads/ (.glb files)
+
+
+---
+
+## 5. Môi trường phát triển & kiểm thử
+
+### 🖥️ Server
+- OS: Linux
+- Backend: Node.js + Express
+- Reverse Proxy: Nginx
+- IP public: `136.111.208.187`
+
+### 📱 Android
+- Thiết bị: Xiaomi Redmi Note 11S
+- Android: 13 (Tiramisu)
+- IDE: Android Studio
+- Ngôn ngữ: Java + XML
+- AR Framework: ARCore + Sceneform
+
+---
+
+## 6. Vấn đề gặp phải & cách giải quyết
+
+| Vấn đề | Nguyên nhân | Giải pháp |
+|------|------------|----------|
+| App crash | Xung đột ARCore – Sceneform | Tắt Light Estimation |
+| Upload lỗi | Giới hạn Nginx | Cấu hình `client_max_body_size` |
+| App không load server | Sai port / IP | Dùng Nginx + Port 80 |
+
+---
+
+## 7. Kết quả đạt được
+
+- ✅ Hoàn thiện hệ thống AR Client–Server  
+- ✅ Load mô hình 3D từ server thật  
+- ✅ Hiển thị mô hình trong không gian thực  
+- ✅ Tương tác mượt mà  
+- ✅ Kiến trúc rõ ràng, dễ mở rộng  
+
+---
+
+## 8. Hướng phát triển tương lai
+
+- Metadata cho model (scale, rotation)
+- Cache model
+- Lưu trạng thái AR scene
+- Xác thực người dùng
+- HTTPS
+- Tối ưu hiệu năng
+
+---
+
+## 9. Kết luận
+
+Đề tài đã triển khai thành công một ứng dụng **AR Android theo kiến trúc Client–Server**, kết hợp giữa **ARCore, Android và Backend Server**.  
+Hệ thống đáp ứng đầy đủ yêu cầu học thuật và có khả năng mở rộng cho các ứng dụng AR thực tế.
+
+---
+
+### 📌 Ghi chú
+Dự án được phát triển và kiểm thử trên **thiết bị thật** và **server public**, đảm bảo tính thực tiễn và ổn định.
+
