@@ -96,6 +96,8 @@ Mở cổng và cấu hình firewall
 http://136.111.208.187
 
 **3.2 📱 Ứng dụng Android AR**
+<img width="965" height="340" alt="image" src="https://github.com/user-attachments/assets/a5ed2ea6-1589-41c6-80db-bed134001f61" />
+
 
 Ứng dụng Android là client AR, chịu trách nhiệm hiển thị và tương tác.
 
