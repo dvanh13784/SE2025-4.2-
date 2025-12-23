@@ -137,8 +137,6 @@ http://136.111.208.187
 - Hướng dẫn quét mặt phẳng
 - Đặt model bằng thao tác chạm
 - Điều chỉnh kích thước model
-
-#### 🚀 Có thể mở rộng
 - Chọn / xoá model
 - Thay thế model
 - Xem trước model
