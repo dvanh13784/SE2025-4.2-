@@ -59,22 +59,36 @@ Xây dựng thành công một ứng dụng AR Android hoàn chỉnh, trong đó
 
 ### 3.1 🖥️ Backend Server (Node.js)
 
-Backend đóng vai trò **trung tâm quản lý mô hình 3D**.
+Backend Server đóng vai trò **trung tâm quản lý toàn bộ mô hình 3D** trong hệ thống AR Client–Server.  
+Server không chỉ cung cấp API cho ứng dụng Android, mà còn triển khai **giao diện Web quản trị (AR Cloud Manager)** để thao tác trực tiếp với dữ liệu mô hình.
 
-#### ✔ Các chức năng đã thực hiện
-- Server xây dựng bằng **Node.js + Express**
-- Cung cấp REST API:
-  - `GET /api/models` – Lấy danh sách model
-  - `POST /upload` – Upload model `.glb / .gltf`
-- Phục vụ file 3D qua HTTP
-- Hỗ trợ **CORS**
-- Lưu trữ model trong thư mục `uploads/`
-- Tránh ghi đè file bằng **timestamp**
-- Tích hợp **Nginx reverse proxy**
-- Mở cổng và cấu hình firewall
+---
 
-#### 🌐 Server public
+#### 🎯 Vai trò của Backend trong hệ thống
+
+- Lưu trữ tập trung các mô hình 3D (.glb / .gltf)
+- Phân phối mô hình cho ứng dụng Android thông qua HTTP
+- Cho phép upload / quản lý model **không cần build lại app**
+- Đóng vai trò **AR Cloud Server** trong kiến trúc Client–Server
+
+---
+
+#### 🧱 Công nghệ sử dụng
+
+- **Node.js + Express**: xây dựng server backend
+- **Multer**: xử lý upload file 3D
+- **Filesystem (fs)**: quản lý file vật lý
+- **Nginx**: reverse proxy, public server ra Internet
+- **CORS**: cho phép Android client truy cập API
+- **Linux Server**: triển khai thực tế với IP public
+
+---
+
+#### 🌐 Giao diện Web quản lý – AR Cloud Manager
+
+Server cung cấp một **trang web quản lý trực quan**, truy cập trực tiếp qua trình duyệt:
 http://136.111.208.187
+
 <img width="1763" height="919" alt="image" src="https://github.com/user-attachments/assets/49db8b29-8c36-4f71-b6bc-5667aa3c7210" />
 
 ---
