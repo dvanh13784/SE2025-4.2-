@@ -51,11 +51,11 @@ app.get('/api/models', (req, res) => {
                     name: file,
                     size: (stats.size / 1024 / 1024).toFixed(2) + ' MB',
                     date: new Date(stats.mtime).toLocaleString('vi-VN'),
-                    timestamp: stats.mtimeMs, // Để sắp xếp
-                    url: `${req.protocol}://${req.get('host')}/uploads/${file}`
+                    timestamp: stats.mtimeMs,
+                    url: `http://${SERVER_IP}:${PORT}/uploads/${file}`  // <-- Sửa đúng ở đây
                 };
             })
-            .sort((a, b) => b.timestamp - a.timestamp); // Mới nhất lên đầu
+            .sort((a, b) => b.timestamp - a.timestamp);
 
         res.json({ models: files });
     } catch (error) {
