@@ -107,12 +107,6 @@ http://136.111.208.187
 
 ---
 
-#### 🔌 REST API cung cấp cho Android Client
-
-##### 1️⃣ Lấy danh sách model
-```http
-GET /api/models
-
 ### 3.2 📱 Ứng dụng Android AR
 
 Ứng dụng Android đóng vai trò **client AR**, chịu trách nhiệm hiển thị và tương tác với mô hình 3D.
