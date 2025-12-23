@@ -5,11 +5,14 @@ const fs = require('fs');
 const cors = require('cors'); 
 
 const app = express();
-const PORT = 3000; // Đổi thành 4000 nếu muốn chạy server riêng
+
+// 👇 1. CẤU HÌNH ĐỊA CHỈ SERVER CỦA BẠN Ở ĐÂY 👇
+const SERVER_IP = "136.111.208.187";
+const PORT = 3000; // Chạy cổng 3000 (Nhớ mở firewall)
 
 app.use(cors()); 
-app.use(express.static('public'));
-app.use('/uploads', express.static('uploads'));
+app.use(express.static('public')); // Chứa file giao diện index.html
+app.use('/uploads', express.static('uploads')); // Chứa file model
 
 // Tạo thư mục uploads nếu chưa có
 const uploadDir = path.join(__dirname, 'uploads');
@@ -17,13 +20,12 @@ if (!fs.existsSync(uploadDir)){
     fs.mkdirSync(uploadDir);
 }
 
-// --- CẤU HÌNH UPLOAD ---
+// Cấu hình lưu file (Tự đổi tên để tránh trùng)
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, 'uploads/');
     },
     filename: function (req, file, cb) {
-        // Giữ timestamp để tên file luôn là duy nhất
         const timePrefix = Date.now();
         const safeName = file.originalname.replace(/[^a-zA-Z0-9_.-]/g, '_');
         cb(null, `${timePrefix}-${safeName}`);
@@ -31,7 +33,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// --- API 1: UPLOAD FILE (Giữ nguyên logic cũ) ---
+// --- API 1: UPLOAD FILE ---
 app.post('/upload', upload.array('files'), (req, res) => {
     if (!req.files || req.files.length === 0) {
         return res.status(400).json({ status: 'error', message: 'Thiếu file' });
@@ -39,7 +41,7 @@ app.post('/upload', upload.array('files'), (req, res) => {
     return res.status(200).json({ status: 'success', message: 'Upload thành công!' });
 });
 
-// --- API 2: LẤY DANH SÁCH CHI TIẾT (Cho Web Quản Lý) ---
+// --- API 2: LẤY DANH SÁCH (Sửa lỗi quan trọng ở đây) ---
 app.get('/api/models', (req, res) => {
     try {
         const files = fs.readdirSync(uploadDir)
@@ -51,24 +53,25 @@ app.get('/api/models', (req, res) => {
                     name: file,
                     size: (stats.size / 1024 / 1024).toFixed(2) + ' MB',
                     date: new Date(stats.mtime).toLocaleString('vi-VN'),
-                    timestamp: stats.mtimeMs, // Để sắp xếp
-                    url: `${req.protocol}://${req.get('host')}/uploads/${file}`
+                    timestamp: stats.mtimeMs,
+                    // 👇 QUAN TRỌNG: Ép cứng IP để link luôn đúng
+                    url: `http://${SERVER_IP}:${PORT}/uploads/${file}`
                 };
             })
             .sort((a, b) => b.timestamp - a.timestamp); // Mới nhất lên đầu
 
         res.json({ models: files });
     } catch (error) {
-        res.status(500).json({ error: 'Lỗi đọc thư mục' });
+        console.error(error);
+        res.status(500).json({ error: 'Lỗi đọc thư mục hoặc chưa có file nào' });
     }
 });
 
-// --- API 3: XÓA FILE (Mới thêm) ---
+// --- API 3: XÓA FILE ---
 app.delete('/api/files/:filename', (req, res) => {
     const filename = req.params.filename;
     const filePath = path.join(uploadDir, filename);
 
-    // Bảo mật: Không cho phép xóa file nằm ngoài thư mục uploads
     if (filename.includes('..') || filename.includes('/')) {
         return res.status(400).json({ error: 'Tên file không hợp lệ' });
     }
@@ -76,7 +79,6 @@ app.delete('/api/files/:filename', (req, res) => {
     if (fs.existsSync(filePath)) {
         try {
             fs.unlinkSync(filePath);
-            console.log(`🗑️ Đã xóa file: ${filename}`);
             res.json({ success: true, message: `Đã xóa ${filename}` });
         } catch (e) {
             res.status(500).json({ error: 'Lỗi khi xóa file' });
@@ -86,9 +88,8 @@ app.delete('/api/files/:filename', (req, res) => {
     }
 });
 
-// --- API 4: CHO ANDROID TẢI FILE MỚI NHẤT (Giữ nguyên logic cũ của bạn) ---
+// --- API 4: ANDROID TẢI FILE MỚI NHẤT ---
 app.get('/api/get-model', (req, res) => {
-    console.log("👉 Android đang yêu cầu tải model mới nhất...");
     const glbFiles = fs.readdirSync(uploadDir)
         .filter(file => file.endsWith('.glb') || file.endsWith('.gltf'))
         .map(file => ({
@@ -106,6 +107,10 @@ app.get('/api/get-model', (req, res) => {
     }
 });
 
+// Khởi động Server
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Server quản lý đang chạy tại: http://localhost:${PORT}`);
+    console.log(`------------------------------------------------`);
+    console.log(`✅ Server ĐÃ CHẠY THÀNH CÔNG!`);
+    console.log(`👉 Truy cập Web tại: http://${SERVER_IP}:${PORT}`);
+    console.log(`------------------------------------------------`);
 });
