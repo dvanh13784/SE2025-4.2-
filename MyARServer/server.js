@@ -9,10 +9,9 @@ const PORT = 3000;
 
 app.use(cors()); 
 app.use(express.json()); 
-app.use(express.static('public')); // Chứa giao diện web
-app.use('/uploads', express.static('uploads')); // Chứa file model
+app.use(express.static('public')); 
+app.use('/uploads', express.static('uploads'));
 
-// Tạo thư mục uploads nếu chưa có
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
 
@@ -27,13 +26,13 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// --- API 1: UPLOAD (Hỗ trợ nhiều file) ---
+// --- API 1: UPLOAD ---
 app.post('/upload', upload.array('files'), (req, res) => {
     if (!req.files || req.files.length === 0) return res.status(400).json({ message: 'Thiếu file' });
     res.json({ message: 'Upload thành công!' });
 });
 
-// --- API 2: LẤY DANH SÁCH FILE (Cho Web) ---
+// --- API 2: LẤY DANH SÁCH FILE ---
 app.get('/api/files', (req, res) => {
     try {
         const hostUrl = `http://${req.headers.host}`;
@@ -50,7 +49,7 @@ app.get('/api/files', (req, res) => {
                     url: `${hostUrl}/uploads/${file}`
                 };
             })
-            .sort((a, b) => b.timestamp - a.timestamp); // Mới nhất lên đầu
+            .sort((a, b) => b.timestamp - a.timestamp); 
 
         res.json(files);
     } catch (error) {
@@ -63,18 +62,17 @@ app.delete('/api/files/:filename', (req, res) => {
     const filename = req.params.filename;
     const filePath = path.join(uploadDir, filename);
 
-    // Bảo mật đường dẫn
     if (filename.includes('..') || filename.includes('/')) return res.status(400).json({ error: 'Tên file lỗi' });
 
     if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath); // Lệnh xóa file
+        fs.unlinkSync(filePath); 
         res.json({ success: true, message: 'Đã xóa file' });
     } else {
         res.status(404).json({ error: 'File không tồn tại' });
     }
 });
 
-// --- API 4: CHO ANDROID TẢI FILE MỚI NHẤT ---
+// --- API 4: ANDROID DOWNLOAD ---
 app.get('/api/get-model', (req, res) => {
     const files = fs.readdirSync(uploadDir)
         .filter(f => f.endsWith('.glb') || f.endsWith('.gltf'))
@@ -85,7 +83,7 @@ app.get('/api/get-model', (req, res) => {
     else res.status(404).send("Empty");
 });
 
-// Khởi động Server (Bắt buộc 0.0.0.0 để chạy VPS)
+// Chạy Server (Sửa thông báo log)
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Server Dashboard đang chạy tại cổng ${PORT}`);
+    console.log('✅ Server đã chạy thành công!');
 });
