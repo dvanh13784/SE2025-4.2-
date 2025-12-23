@@ -15,6 +15,28 @@ app.use('/uploads', express.static('uploads'));
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
 
+const MODEL_EXTENSIONS = new Set(['.glb', '.gltf']);
+
+// Utility: get list of model files (sorted by newest)
+const getModelFiles = (hostUrl = null) => {
+    return fs.readdirSync(uploadDir)
+        .filter(file => MODEL_EXTENSIONS.has(path.extname(file).toLowerCase()))
+        .map(file => {
+            const filePath = path.join(uploadDir, file);
+            const stats = fs.statSync(filePath);
+            const info = {
+                name: file,
+                size: (stats.size / 1024 / 1024).toFixed(2) + ' MB',
+                date: new Date(stats.mtime).toLocaleString('vi-VN'),
+                timestamp: stats.mtimeMs
+            };
+
+            if (hostUrl) info.url = `${hostUrl}/uploads/${file}`;
+            return info;
+        })
+        .sort((a, b) => b.timestamp - a.timestamp);
+};
+
 // Cấu hình lưu file
 const storage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, 'uploads/'),
@@ -36,22 +58,17 @@ app.post('/upload', upload.array('files'), (req, res) => {
 app.get('/api/files', (req, res) => {
     try {
         const hostUrl = `http://${req.headers.host}`;
-        const files = fs.readdirSync(uploadDir)
-            .filter(file => file.endsWith('.glb') || file.endsWith('.gltf'))
-            .map(file => {
-                const filePath = path.join(uploadDir, file);
-                const stats = fs.statSync(filePath);
-                return {
-                    name: file,
-                    size: (stats.size / 1024 / 1024).toFixed(2) + ' MB',
-                    date: new Date(stats.mtime).toLocaleString('vi-VN'),
-                    timestamp: stats.mtimeMs,
-                    url: `${hostUrl}/uploads/${file}`
-                };
-            })
-            .sort((a, b) => b.timestamp - a.timestamp); 
+        res.json(getModelFiles(hostUrl));
+    } catch (error) {
+        res.status(500).json({ error: 'Lỗi server' });
+    }
+});
 
-        res.json(files);
+// --- API 2b: ALIAS LẤY DANH SÁCH MODEL ---
+app.get('/api/models', (req, res) => {
+    try {
+        const hostUrl = `http://${req.headers.host}`;
+        res.json(getModelFiles(hostUrl));
     } catch (error) {
         res.status(500).json({ error: 'Lỗi server' });
     }
@@ -74,10 +91,7 @@ app.delete('/api/files/:filename', (req, res) => {
 
 // --- API 4: ANDROID DOWNLOAD ---
 app.get('/api/get-model', (req, res) => {
-    const files = fs.readdirSync(uploadDir)
-        .filter(f => f.endsWith('.glb') || f.endsWith('.gltf'))
-        .map(f => ({ name: f, time: fs.statSync(path.join(uploadDir, f)).mtimeMs }))
-        .sort((a, b) => b.time - a.time);
+    const files = getModelFiles();
 
     if (files.length > 0) res.download(path.join(uploadDir, files[0].name), files[0].name);
     else res.status(404).send("Empty");
