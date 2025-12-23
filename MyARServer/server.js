@@ -19,6 +19,28 @@ app.use('/uploads', express.static('uploads')); // Chứa file model (.glb)
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
 
+const MODEL_EXTENSIONS = new Set(['.glb', '.gltf']);
+
+// Utility: get list of model files (sorted by newest)
+const getModelFiles = (hostUrl = null) => {
+    return fs.readdirSync(uploadDir)
+        .filter(file => MODEL_EXTENSIONS.has(path.extname(file).toLowerCase()))
+        .map(file => {
+            const filePath = path.join(uploadDir, file);
+            const stats = fs.statSync(filePath);
+            const info = {
+                name: file,
+                size: (stats.size / 1024 / 1024).toFixed(2) + ' MB',
+                date: new Date(stats.mtime).toLocaleString('vi-VN'),
+                timestamp: stats.mtimeMs
+            };
+
+            if (hostUrl) info.url = `${hostUrl}/uploads/${file}`;
+            return info;
+        })
+        .sort((a, b) => b.timestamp - a.timestamp);
+};
+
 // Cấu hình lưu file
 const storage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, 'uploads/'),
