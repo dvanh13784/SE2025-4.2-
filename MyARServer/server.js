@@ -87,6 +87,22 @@ app.get('/api/files', (req, res) => {
     }
 });
 
+// API trả về danh sách model cho ứng dụng Android
+app.get('/api/models', (req, res) => {
+    try {
+        // Ưu tiên host từ request để đảm bảo đúng IP/port khi deploy thực tế
+        const hostFromRequest = req.get('host');
+        const hostUrl = hostFromRequest ? `${req.protocol}://${hostFromRequest}` : `http://${SERVER_IP}:${PORT}`;
+
+        const models = getModelFiles(hostUrl)
+            .map(({ name, size, date, url }) => ({ name, size, date, url }));
+
+        res.json({ models });
+    } catch (error) {
+        res.status(500).json({ error: 'Lỗi server' });
+    }
+});
+
 // Xóa file
 app.delete('/api/files/:filename', (req, res) => {
     const filename = req.params.filename;
