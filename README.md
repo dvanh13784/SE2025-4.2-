@@ -201,15 +201,103 @@ uploads/ (.glb files)
 | App không load server | Sai port / IP | Dùng Nginx + Port 80 |
 
 ---
-
 ## 7. Kết quả đạt được
 
-- ✅ Hoàn thiện hệ thống AR Client–Server  
-- ✅ Load mô hình 3D từ server thật  
-- ✅ Hiển thị mô hình trong không gian thực  
-- ✅ Tương tác mượt mà  
-- ✅ Kiến trúc rõ ràng, dễ mở rộng  
+Sau quá trình phân tích, thiết kế, triển khai và kiểm thử, đề tài đã **hoàn thiện thành công toàn bộ hệ thống AR theo kiến trúc Client–Server**, đáp ứng đầy đủ các mục tiêu đã đề ra ban đầu.
 
+### 7.1 Hoàn thiện hệ thống AR Client–Server
+
+Hệ thống được xây dựng theo mô hình **Client–Server rõ ràng**, trong đó:
+
+- **Server (Backend)**:
+  - Chịu trách nhiệm lưu trữ và quản lý tập trung các mô hình 3D (.glb, .gltf)
+  - Cung cấp API REST để client truy cập
+  - Phục vụ file 3D qua HTTP
+  - Hoạt động trên **server thật (public IP)**, không phụ thuộc môi trường local
+
+- **Client (Android AR App)**:
+  - Không nhúng cứng mô hình 3D trong ứng dụng
+  - Kết nối động đến server để lấy dữ liệu
+  - Tải model theo thời gian thực và hiển thị bằng ARCore
+
+👉 Kết quả:  
+Hệ thống hoạt động ổn định, phân tách rõ ràng giữa **xử lý dữ liệu (server)** và **hiển thị/ tương tác (client)**, đúng với mô hình kiến trúc phần mềm hiện đại.
+
+---
+
+### 7.2 Load mô hình 3D từ server thật (Public Server)
+
+Một trong những kết quả quan trọng nhất của đề tài là:
+
+- Ứng dụng Android **tải mô hình 3D trực tiếp từ server public**
+- Server được triển khai tại: http://136.111.208.187
+- Dữ liệu model không còn phụ thuộc vào:
+- Local machine
+- Tài nguyên build sẵn trong APK
+
+Cụ thể:
+- Server trả về danh sách model qua API `/api/models`
+- Mỗi model có URL public
+- Ứng dụng Android dùng URL đó để tải model khi người dùng lựa chọn
+
+👉 Điều này chứng minh:
+- Hệ thống có khả năng **mở rộng quy mô**
+- Có thể thay đổi / cập nhật model **mà không cần build lại ứng dụng**
+
+---
+
+### 7.3 Hiển thị mô hình 3D trong không gian thực (AR)
+
+Ứng dụng đã hiển thị thành công mô hình 3D trong **môi trường thực tế thông qua camera**, nhờ vào:
+
+- ARCore (Google)
+- Sceneform (Filament)
+
+Các chức năng AR đã hoạt động chính xác:
+- Nhận diện mặt phẳng (plane detection)
+- Đặt model tại vị trí người dùng chạm
+- Hiển thị model với tỷ lệ phù hợp
+- Cho phép đặt **nhiều model trong cùng một phiên AR**
+
+👉 Kết quả:
+- Mô hình được gắn chính xác vào không gian thật
+- Không bị trôi vị trí khi người dùng di chuyển
+- Trải nghiệm AR ổn định trên thiết bị thật
+
+---
+
+### 7.4 Tương tác mượt mà với mô hình 3D
+
+Ứng dụng hỗ trợ đầy đủ các thao tác AR cơ bản:
+
+- 🖐 **Di chuyển (Move)**: kéo model trong không gian
+- 🔄 **Xoay (Rotate)**: xoay model theo trục
+- 🔍 **Phóng to / Thu nhỏ (Scale)**: pinch để zoom
+
+Các tương tác này được xử lý thông qua:
+- `TransformableNode`
+- `TransformationSystem` của Sceneform
+
+👉 Kết quả:
+- Tương tác mượt mà, phản hồi nhanh
+- Không xảy ra giật lag đáng kể
+- Trải nghiệm người dùng trực quan, dễ sử dụng
+
+---
+
+### 7.5 Kiến trúc rõ ràng, dễ mở rộng
+
+Toàn bộ hệ thống được xây dựng với tư duy **dễ bảo trì – dễ mở rộng**, thể hiện qua:
+
+- API tách biệt rõ ràng
+- Client không phụ thuộc vào logic server
+- Có thể:
+- thêm model mới
+- thay đổi giao diện
+- mở rộng tính năng AR
+- nâng cấp bảo mật
+
+👉 Đây là nền tảng tốt cho các dự án AR quy mô lớn hơn trong tương lai.
 ---
 
 ## 8. Hướng phát triển tương lai
