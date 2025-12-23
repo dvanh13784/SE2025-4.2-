@@ -102,5 +102,5 @@ app.get('/api/get-model', (req, res) => {
 
 // Lắng nghe trên cổng 80
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Server đang chạy tại: ${BASE_URL}`);
+    console.log(`🚀 Server quản lý đang chạy tại: http://${SERVER_IP}:${PORT}`);
 });
