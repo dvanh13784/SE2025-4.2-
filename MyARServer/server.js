@@ -1,120 +1,75 @@
 const express = require('express');
 const multer = require('multer');
-const path = require('path');
 const fs = require('fs');
-const cors = require('cors');
+const path = require('path');
+const cors = require('cors'); // Thêm cái này để tránh lỗi nếu gọi từ nơi khác
 
 const app = express();
-const PORT = 3000
-const SERVER_IP = "136.111.208.187";
+const PORT = 4000;
+const UPLOAD_DIR = './uploads';
 
-// Middleware
+// Cấu hình cơ bản
 app.use(cors());
-app.use(express.static('public'));
-app.use('/uploads', express.static('uploads'));
+app.use(express.json());
+app.use('/uploads', express.static(UPLOAD_DIR)); // Cho phép truy cập file
+app.use(express.static('public')); // Cho phép truy cập giao diện quản lý
 
-// Tạo thư mục uploads nếu chưa có
-const uploadDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir);
-}
+// Tạo thư mục nếu chưa có
+if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR);
 
-// --- CẤU HÌNH UPLOAD ---
+// 1. Cấu hình Upload (Giữ nguyên tên gốc của file)
 const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, 'uploads/');
-    },
-    filename: function (req, file, cb) {
-        const timePrefix = Date.now();
-        const safeName = file.originalname.replace(/[^a-zA-Z0-9_.-]/g, '_');
-        cb(null, `${timePrefix}-${safeName}`);
+    destination: (req, file, cb) => cb(null, UPLOAD_DIR),
+    filename: (req, file, cb) => {
+        // Xử lý tên file để tránh lỗi ký tự đặc biệt (tiếng Việt, dấu cách)
+        const originalName = Buffer.from(file.originalname, 'latin1').toString('utf8');
+        const safeName = originalName.replace(/\s+/g, '_'); // Đổi khoảng trắng thành _
+        cb(null, safeName);
     }
 });
-
 const upload = multer({ storage: storage });
 
-// --- API 1: UPLOAD FILE ---
-app.post('/upload', upload.array('files'), (req, res) => {
-    if (!req.files || req.files.length === 0) {
-        return res.status(400).json({ status: 'error', message: 'Thiếu file' });
-    }
-    return res.status(200).json({ status: 'success', message: 'Upload thành công!' });
+// --- CÁC API QUẢN LÝ ---
+
+// API 1: Lấy danh sách tất cả các file
+app.get('/api/files', (req, res) => {
+    fs.readdir(UPLOAD_DIR, (err, files) => {
+        if (err) return res.status(500).json({ error: 'Lỗi đọc thư mục' });
+
+        const fileInfos = files.map(file => {
+            const stats = fs.statSync(path.join(UPLOAD_DIR, file));
+            return {
+                name: file,
+                size: (stats.size / 1024 / 1024).toFixed(2) + ' MB', // Chuyển sang MB
+                date: stats.mtime.toLocaleString('vi-VN'), // Ngày giờ việt nam
+                url: `http://${req.headers.host}/uploads/${file}`
+            };
+        });
+        res.json(fileInfos); // Trả về danh sách JSON
+    });
 });
 
-// --- API 2: LẤY DANH SÁCH MODEL (Sửa logic lấy URL) ---
-app.get('/api/models', (req, res) => {
-    try {
-        const files = fs.readdirSync(uploadDir)
-            .filter(file => file.endsWith('.glb') || file.endsWith('.gltf'))
-            .map(file => {
-                const filePath = path.join(uploadDir, file);
-                const stats = fs.statSync(filePath);
-                
-                // Tự động nhận diện host để tạo link đúng dù chạy IP nào
-                const hostUrl = `${req.protocol}://${req.get('host')}`; 
-                
-                return {
-                    name: file,
-                    size: (stats.size / 1024 / 1024).toFixed(2) + ' MB',
-                    date: new Date(stats.mtime).toLocaleString('vi-VN'),
-                    timestamp: stats.mtimeMs,
-                    url: `${hostUrl}/uploads/${file}`
-                };
-            })
-            .sort((a, b) => b.timestamp - a.timestamp); // File mới nhất lên đầu
-
-        res.json({ models: files });
-    } catch (error) {
-        console.error("Lỗi đọc thư mục:", error);
-        res.status(500).json({ error: 'Lỗi đọc thư mục' });
-    }
+// API 2: Upload file mới
+app.post('/api/upload', upload.single('modelFile'), (req, res) => {
+    if (!req.file) return res.status(400).json({ error: 'Chưa chọn file!' });
+    res.json({ message: 'Upload thành công!', file: req.file });
 });
 
-// --- API 3: XÓA FILE ---
+// API 3: Xóa file
 app.delete('/api/files/:filename', (req, res) => {
     const filename = req.params.filename;
-    const filePath = path.join(uploadDir, filename);
-
-    if (filename.includes('..') || filename.includes('/')) {
-        return res.status(400).json({ error: 'Tên file không hợp lệ' });
-    }
+    const filePath = path.join(UPLOAD_DIR, filename);
 
     if (fs.existsSync(filePath)) {
-        try {
-            fs.unlinkSync(filePath);
-            res.json({ success: true, message: `Đã xóa ${filename}` });
-        } catch (e) {
-            res.status(500).json({ error: 'Lỗi khi xóa file' });
-        }
+        fs.unlinkSync(filePath); // Lệnh xóa file
+        res.json({ success: true, message: `Đã xóa ${filename}` });
     } else {
         res.status(404).json({ error: 'File không tồn tại' });
     }
 });
 
-// --- API 4: ANDROID LẤY FILE MỚI NHẤT ---
-app.get('/api/get-model', (req, res) => {
-    console.log("👉 Android đang yêu cầu model mới nhất...");
-    const glbFiles = fs.readdirSync(uploadDir)
-        .filter(file => file.endsWith('.glb') || file.endsWith('.gltf'))
-        .map(file => ({
-            name: file,
-            time: fs.statSync(path.join(uploadDir, file)).mtimeMs
-        }))
-        .sort((a, b) => b.time - a.time);
+const SERVER_IP = "136.111.208.187";
 
-    const latestFile = glbFiles.length > 0 ? glbFiles[0].name : null;
-
-    if (latestFile) {
-        res.download(path.join(uploadDir, latestFile), latestFile);
-    } else {
-        res.status(404).send("Chưa có file nào.");
-    }
-});
-
-// --- KHỞI ĐỘNG SERVER ---
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`------------------------------------------------`);
-    console.log(`✅ Server đang chạy ổn định!`);
-    console.log(`👉 Truy cập Web tại đây: http://${SERVER_IP}`);
-    console.log(`------------------------------------------------`);
+    console.log(`🚀 Server quản lý đang chạy tại: http://${SERVER_IP}/`);
 });
