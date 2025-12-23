@@ -374,14 +374,25 @@ Mặc dù hệ thống đã hoạt động ổn định, vẫn còn nhiều hư�
 👉 Giúp ứng dụng chạy mượt trên nhiều thiết bị hơn.
 
 ---
-
 ## 9. Kết luận
 
-Đề tài đã triển khai thành công một ứng dụng **AR Android theo kiến trúc Client–Server**, kết hợp giữa **ARCore, Android và Backend Server**.  
-Hệ thống đáp ứng đầy đủ yêu cầu học thuật và có khả năng mở rộng cho các ứng dụng AR thực tế.
+Đề tài đã **triển khai thành công một ứng dụng Thực tế tăng cường (AR) trên Android theo kiến trúc Client–Server**, kết hợp hiệu quả giữa:
+
+- **Android**
+- **ARCore & Sceneform**
+- **Backend Server (Node.js + Nginx)**
+
+Hệ thống:
+- Hoạt động ổn định trên **server thật**
+- Hiển thị chính xác mô hình 3D trong không gian thực
+- Hỗ trợ tương tác AR mượt mà
+- Có kiến trúc rõ ràng, dễ mở rộng
+
+👉 Đề tài **đáp ứng đầy đủ yêu cầu học thuật**, đồng thời có tính **ứng dụng thực tiễn cao**, có thể tiếp tục phát triển thành sản phẩm AR hoàn chỉnh trong các lĩnh vực:
+- giáo dục
+- trưng bày sản phẩm
+- thiết kế
+- triển lãm công nghệ
 
 ---
-
-### 📌 Ghi chú
-Dự án được phát triển và kiểm thử trên **thiết bị thật** và **server public**, đảm bảo tính thực tiễn và ổn định.
 
