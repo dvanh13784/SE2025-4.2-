@@ -5,7 +5,7 @@ const fs = require('fs');
 const cors = require('cors');
 
 const app = express();
-const PORT = 80
+const PORT = 3000
 const SERVER_IP = "136.111.208.187";
 
 // Middleware
