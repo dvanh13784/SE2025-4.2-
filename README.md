@@ -302,12 +302,76 @@ Toàn bộ hệ thống được xây dựng với tư duy **dễ bảo trì –
 
 ## 8. Hướng phát triển tương lai
 
-- Metadata cho model (scale, rotation)
-- Cache model
-- Lưu trạng thái AR scene
-- Xác thực người dùng
-- HTTPS
-- Tối ưu hiệu năng
+Mặc dù hệ thống đã hoạt động ổn định, vẫn còn nhiều hướng phát triển để nâng cao giá trị ứng dụng và tăng độ hoàn thiện.
+
+### 8.1 Metadata cho mô hình 3D
+
+- Lưu thêm thông tin cho mỗi model:
+- scale mặc định
+- rotation mặc định
+- mô tả, danh mục
+- Metadata có thể được:
+- lưu trong database
+- trả về kèm API `/api/models`
+
+👉 Giúp hiển thị model đúng tỷ lệ và ngữ cảnh hơn.
+
+---
+
+### 8.2 Cache mô hình 3D
+
+- Lưu model đã tải về trong bộ nhớ thiết bị
+- Tránh tải lại khi:
+- người dùng chọn lại model
+- mất kết nối mạng
+
+👉 Cải thiện hiệu năng và trải nghiệm người dùng.
+
+---
+
+### 8.3 Lưu và khôi phục trạng thái AR Scene
+
+- Lưu danh sách:
+- model đã đặt
+- vị trí
+- rotation
+- scale
+- Khôi phục scene khi mở lại ứng dụng
+
+👉 Phù hợp cho:
+- thiết kế nội thất
+- trình diễn sản phẩm
+- demo dài hạn
+
+---
+
+### 8.4 Xác thực người dùng (Authentication)
+
+- Thêm đăng nhập:
+- admin upload model
+- user chỉ xem
+- Phân quyền:
+- upload / xoá / xem
+
+👉 Tăng tính bảo mật và quản lý hệ thống.
+
+---
+
+### 8.5 HTTPS và bảo mật
+
+- Triển khai HTTPS (SSL)
+- Bảo vệ dữ liệu truyền tải
+- Phù hợp với yêu cầu sản phẩm thực tế
+
+---
+
+### 8.6 Tối ưu hiệu năng AR
+
+- Giảm dung lượng model
+- Tối ưu texture
+- Quản lý bộ nhớ khi hiển thị nhiều model
+
+👉 Giúp ứng dụng chạy mượt trên nhiều thiết bị hơn.
 
 ---
 
