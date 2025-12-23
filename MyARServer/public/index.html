@@ -1,176 +1,225 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Upload GLB Model</title>
-<style>
-    /* --- PHẦN GIAO DIỆN (CSS) --- */
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    
-    body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        background-color: #f3f4f6;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        color: #374151;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AR Server Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --text: #334155;
+            --danger: #ef4444;
+        }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+        
+        .container { max-width: 1000px; margin: 0 auto; }
+        
+        /* Header */
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .header h1 { font-size: 24px; color: #1e293b; display: flex; align-items: center; gap: 10px; }
+        .refresh-btn { background: white; border: 1px solid #cbd5e1; padding: 8px 15px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        .refresh-btn:hover { background: #f1f5f9; }
 
-    .upload-card {
-        background: white;
-        width: 100%;
-        max-width: 450px;
-        padding: 32px;
-        border-radius: 16px;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 
-                    0 8px 10px -6px rgba(0, 0, 0, 0.1);
-        text-align: center;
-    }
+        /* Upload Box */
+        .upload-card {
+            background: var(--surface);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            text-align: center;
+            border: 2px dashed #e2e8f0;
+            transition: 0.3s;
+            margin-bottom: 30px;
+            cursor: pointer;
+            position: relative;
+        }
+        .upload-card:hover, .upload-card.dragover { border-color: var(--primary); background: #eef2ff; }
+        .upload-icon { font-size: 40px; color: var(--primary); margin-bottom: 15px; }
+        .upload-btn {
+            background: var(--primary); color: white; border: none; padding: 10px 24px;
+            border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 15px;
+        }
+        input[type="file"] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
 
-    h2 { margin-bottom: 8px; color: #111827; }
-    p { color: #6b7280; font-size: 14px; margin-bottom: 24px; }
+        /* Table */
+        .table-container { background: var(--surface); border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f1f5f9; text-align: left; padding: 15px 20px; font-size: 14px; color: #64748b; font-weight: 600; }
+        td { padding: 15px 20px; border-bottom: 1px solid #f1f5f9; font-size: 14px; vertical-align: middle; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background: #f8fafc; }
+        
+        .file-name { font-weight: 500; color: #0f172a; display: flex; align-items: center; gap: 10px; }
+        .badge-new { background: #dcfce7; color: #166534; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; display: none; }
+        tr:first-child .badge-new { display: inline-block; } /* Đánh dấu file mới nhất */
 
-    .drop-zone {
-        border: 2px dashed #d1d5db;
-        border-radius: 12px;
-        padding: 40px 20px;
-        background-color: #f9fafb;
-        cursor: pointer;
-        transition: all 0.3s;
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-    }
+        /* Actions */
+        .btn-action { border: none; background: none; cursor: pointer; padding: 8px; border-radius: 6px; transition: 0.2s; font-size: 16px; }
+        .btn-copy { color: var(--primary); background: #eef2ff; margin-right: 5px; }
+        .btn-copy:hover { background: #e0e7ff; }
+        .btn-delete { color: var(--danger); background: #fef2f2; }
+        .btn-delete:hover { background: #fee2e2; }
 
-    .drop-zone:hover {
-        border-color: #6366f1;
-        background-color: #eef2ff;
-    }
-
-    .drop-zone.highlight {
-        border-color: #4f46e5;
-        background-color: #e0e7ff;
-    }
-
-    .icon { font-size: 48px; margin-bottom: 12px; }
-
-    /* Input file ẩn */
-    input[type="file"] {
-        position: absolute;
-        top: 0; left: 0; width: 100%; height: 100%;
-        opacity: 0; cursor: pointer;
-    }
-
-    .btn-upload {
-        margin-top: 24px;
-        width: 100%;
-        padding: 14px;
-        background-color: #4f46e5;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-weight: 600;
-        font-size: 16px;
-        cursor: pointer;
-        transition: background-color 0.2s;
-    }
-
-    .btn-upload:hover { background-color: #4338ca; }
-    .btn-upload:disabled { background-color: #9ca3af; cursor: not-allowed; }
-
-    .file-hint { margin-top: 10px; font-size: 12px; color: #9ca3af; }
-    
-    /* Hiển thị tên file khi chọn xong */
-    #file-name-display {
-        font-weight: bold;
-        color: #4f46e5;
-        margin-top: 5px;
-        word-break: break-all;
-    }
-</style>
+        /* Toast Notification */
+        #toast {
+            visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center;
+            border-radius: 8px; padding: 12px; position: fixed; z-index: 1; left: 50%; bottom: 30px;
+            transform: translateX(-50%); font-size: 14px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+        }
+        #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
+        @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
+        @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
+    </style>
 </head>
 <body>
 
-    <div class="upload-card">
-        <h2>Upload 3D Model</h2>
-        <p>Tải lên file thiết kế (.glb) vào Server</p>
-        
-        <form id="uploadForm">
-            <div class="drop-zone" id="dropZone">
-                <span class="icon">☁️</span>
-                <strong id="instruction-text">Click hoặc Kéo thả file vào đây</strong>
-                <div id="file-name-display"></div> <div class="file-hint">Có thể chọn nhiều file .GLB, .GLTF</div>
-
-                <input type="file" name="files" id="fileInput" accept=".glb, .gltf" multiple required>
-            </div>
-
-            <button type="submit" class="btn-upload" id="submitBtn">Tải lên Server</button>
-        </form>
+<div class="container">
+    <div class="header">
+        <h1><i class="fa-solid fa-cube"></i> AR Cloud Manager</h1>
+        <button class="refresh-btn" onclick="loadFiles()"><i class="fa-solid fa-rotate-right"></i> Làm mới</button>
     </div>
 
-    <script>
-        const fileInput = document.getElementById('fileInput');
-        const fileNameDisplay = document.getElementById('file-name-display');
-        const instructionText = document.getElementById('instruction-text');
-        const uploadForm = document.getElementById('uploadForm');
-        const submitBtn = document.getElementById('submitBtn');
+    <div class="upload-card" id="dropZone">
+        <div class="upload-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+        <h3>Kéo thả file .GLB vào đây</h3>
+        <p style="color: #94a3b8; margin: 10px 0;">Hoặc nhấn vào nút bên dưới</p>
+        <button class="upload-btn">Chọn File từ máy</button>
+        <input type="file" id="fileInput" accept=".glb, .gltf" multiple>
+    </div>
 
-        // 1. Hiệu ứng hiển thị tên file khi người dùng chọn
-        fileInput.addEventListener('change', function() {
-            if (this.files && this.files.length > 0) {
-                const names = Array.from(this.files).map(f => f.name).join(', ');
-                fileNameDisplay.textContent = names;
-                instructionText.style.display = 'none';
-            }
-        });
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 40%">Tên File</th>
+                    <th style="width: 15%">Kích thước</th>
+                    <th style="width: 25%">Ngày tải lên</th>
+                    <th style="width: 20%; text-align: right;">Hành động</th>
+                </tr>
+            </thead>
+            <tbody id="fileList">
+                <tr><td colspan="4" style="text-align: center; padding: 30px;">Đang tải dữ liệu...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
 
-        // 2. Xử lý khi bấm nút "Tải lên"
-        uploadForm.addEventListener('submit', function(e) {
-            e.preventDefault(); // Chặn việc load lại trang
+<div id="toast">Thông báo</div>
 
-            // Lấy file
-            const files = fileInput.files;
-            if (!files || files.length === 0) {
-                alert("Vui lòng chọn file trước!");
+<script>
+    const API_URL = ''; // Để trống vì cùng domain
+
+    // 1. Tải danh sách
+    async function loadFiles() {
+        try {
+            const res = await fetch('/api/models');
+            const data = await res.json();
+            const tbody = document.getElementById('fileList');
+            tbody.innerHTML = '';
+
+            if (data.models.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #94a3b8; padding: 40px;">Chưa có model nào. Hãy upload ngay!</td></tr>`;
                 return;
             }
 
-            // Tạo dữ liệu form để gửi
-            const formData = new FormData();
-            Array.from(files).forEach(file => formData.append('files', file));
-
-            // Hiệu ứng đang tải...
-            submitBtn.textContent = "Đang tải lên...";
-            submitBtn.disabled = true;
-
-            // --- GỬI FILE LÊN SERVER ---
-            // Lưu ý: Thay '/upload' bằng đường dẫn API thật của bạn nếu khác
-            fetch('/upload', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => {
-                if (response.ok) {
-                    alert("✅ Upload thành công!");
-                } else {
-                    alert("❌ Lỗi Server!");
-                }
-            })
-            .catch(error => {
-                console.error('Lỗi:', error);
-                alert("❌ Không thể kết nối tới Server.");
-            })
-            .finally(() => {
-                // Trả lại trạng thái nút ban đầu
-                submitBtn.textContent = "Tải lên Server";
-                submitBtn.disabled = false;
+            data.models.forEach((file, index) => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>
+                            <div class="file-name">
+                                <i class="fa-regular fa-file-code" style="color: #64748b;"></i>
+                                ${file.name}
+                                ${index === 0 ? '<span class="badge-new">MỚI NHẤT</span>' : ''}
+                            </div>
+                        </td>
+                        <td>${file.size}</td>
+                        <td style="color: #64748b; font-size: 13px;">${file.date}</td>
+                        <td style="text-align: right;">
+                            <button class="btn-action btn-copy" onclick="copyLink('${file.url}')" title="Copy Link">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                            <button class="btn-action btn-delete" onclick="deleteFile('${file.name}')" title="Xóa">
+                                <i class="fa-regular fa-trash-can"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
             });
-        });
-    </script>
+        } catch (e) {
+            console.error(e);
+            showToast('Lỗi tải danh sách!');
+        }
+    }
+
+    // 2. Xử lý Upload
+    const fileInput = document.getElementById('fileInput');
+    const dropZone = document.getElementById('dropZone');
+
+    // Hiệu ứng kéo thả
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        if (e.dataTransfer.files.length) handleUpload(e.dataTransfer.files);
+    });
+
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length) handleUpload(fileInput.files);
+    });
+
+    async function handleUpload(files) {
+        const formData = new FormData();
+        Array.from(files).forEach(f => formData.append('files', f));
+
+        showToast('⏳ Đang upload...');
+        
+        try {
+            const res = await fetch('/upload', { method: 'POST', body: formData });
+            if (res.ok) {
+                showToast('✅ Upload thành công!');
+                loadFiles(); // Reload lại bảng
+                fileInput.value = ''; // Reset
+            } else {
+                showToast('❌ Lỗi upload!');
+            }
+        } catch (err) { showToast('❌ Lỗi kết nối server'); }
+    }
+
+    // 3. Xóa File
+    async function deleteFile(filename) {
+        if (!confirm(`Bạn chắc chắn muốn xóa: ${filename}?`)) return;
+
+        try {
+            const res = await fetch(`/api/files/${filename}`, { method: 'DELETE' });
+            if (res.ok) {
+                showToast('🗑️ Đã xóa file');
+                loadFiles();
+            } else {
+                showToast('❌ Không xóa được');
+            }
+        } catch (err) { showToast('❌ Lỗi server'); }
+    }
+
+    // 4. Copy Link
+    function copyLink(text) {
+        navigator.clipboard.writeText(text).then(() => showToast('📋 Đã copy link!'));
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById("toast");
+        t.innerText = msg;
+        t.className = "show";
+        setTimeout(() => t.className = t.className.replace("show", ""), 3000);
+    }
+
+    // Chạy khi mở web
+    loadFiles();
+</script>
 
 </body>
 </html>
