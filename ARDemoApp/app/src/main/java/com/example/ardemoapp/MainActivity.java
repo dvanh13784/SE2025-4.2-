@@ -172,7 +172,7 @@ public class MainActivity extends AppCompatActivity {
 
         ModelRenderable.builder()
                 .setSource(this, Uri.parse(url))
-                .setIsFilamentGltf(true) // 👇 QUAN TRỌNG: Thêm dòng này nếu dùng bản Sceneform mới (hỗ trợ GLB tốt hơn)
+                .setIsFilamentGltf(true) 
                 .setRegistryId(url)
                 .build()
                 .thenAccept(renderable -> {
