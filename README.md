@@ -109,26 +109,6 @@ Cắm USB debugging
 
 Android Studio → Run → chọn thiết bị thật
 
-Bước 9B. Trải nghiệm AR
 
-App mở camera
-
-Di chuyển điện thoại để nhận diện mặt phẳng (plane)
-
-Chạm lên mặt phẳng để đặt model
-
-Kết quả đúng cần thấy (tiêu chí hoàn thành)
-
-Model 3D xuất hiện trong không gian thực (AR)
-
-Model lấy từ server (không nhúng cứng trong app)
-
-Người dùng thao tác được:
-
-phóng to/thu nhỏ
-
-xoay
-
-(tuỳ chọn) di chuyển/đặt lại
 
 
