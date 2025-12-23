@@ -1,6 +1,12 @@
 # 📱 Ứng dụng Thực tế tăng cường (AR) Android  
 ## Kiến trúc Client–Server – Hiển thị mô hình 3D (.glb) bằng ARCore
 
+**Nhóm:** SE2025-4.2-
+
+**Thành Viên:** 
+1. Nguyễn Hoàng Anh - 22001539
+
+
 **Môn học:** Công nghệ phần mềm
 
 **Đề tài:** Xây dựng ứng dụng AR Android hiển thị mô hình 3D từ Server  
