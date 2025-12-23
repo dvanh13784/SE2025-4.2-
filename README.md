@@ -1,24 +1,40 @@
-📱 Ứng dụng Thực tế tăng cường (AR) Android theo mô hình Client–Server
+📱 Ứng dụng Thực tế tăng cường (AR) Android
+Kiến trúc Client–Server – Hiển thị mô hình 3D (.glb) bằng ARCore
 
-Hiển thị mô hình 3D (.glb) trong không gian thực bằng ARCore
+Môn học: Công nghệ phần mềm / Thực tế tăng cường
+Đề tài: Xây dựng ứng dụng AR Android hiển thị mô hình 3D từ Server
+Kiến trúc: Client–Server
+Công nghệ: Android • ARCore • Sceneform • Node.js • Nginx
+
+📑 Mục lục
+
+1. Tổng quan đề tài
+
+2. Goals – Mục tiêu tổng quát
+
+3. Objectives – Mục tiêu chi tiết
+
+4. Kiến trúc hệ thống
+
+5. Môi trường phát triển & kiểm thử
+
+6. Vấn đề gặp phải & cách giải quyết
+
+7. Kết quả đạt được
+
+8. Hướng phát triển tương lai
+
+9. Kết luận
 
 1. Tổng quan đề tài
 
 Đề tài tập trung xây dựng một hệ thống Thực tế tăng cường (Augmented Reality – AR) theo kiến trúc Client–Server, trong đó:
 
-Server chịu trách nhiệm lưu trữ, quản lý và phân phối các mô hình 3D định dạng .glb
+Server chịu trách nhiệm lưu trữ, quản lý và phân phối các mô hình 3D (.glb)
 
-Ứng dụng Android đóng vai trò client, kết nối đến server để tải mô hình và hiển thị chúng trong không gian thực thông qua camera bằng ARCore
+Ứng dụng Android đóng vai trò client, kết nối đến server để tải mô hình và hiển thị chúng trong không gian thực thông qua camera
 
-Hệ thống cho phép người dùng:
-
-Tải mô hình 3D từ server
-
-Đặt mô hình vào môi trường thực
-
-Tương tác trực tiếp với mô hình (di chuyển, xoay, phóng to/thu nhỏ)
-
-Đây là nền tảng cho các ứng dụng AR thực tế như:
+🎯 Ứng dụng hướng đến:
 
 Trưng bày sản phẩm AR
 
@@ -26,172 +42,133 @@ Thiết kế nội thất AR
 
 Giáo dục – mô phỏng 3D
 
-Triển lãm và demo công nghệ AR
+Triển lãm và demo công nghệ
 
 2. Goals – Mục tiêu tổng quát
-2.1 Mục tiêu chung
+🎯 Mục tiêu chung
 
-Xây dựng thành công một ứng dụng AR Android hoàn chỉnh hoạt động theo mô hình Client–Server, trong đó:
+Xây dựng thành công một ứng dụng AR Android hoàn chỉnh, trong đó:
 
-Mô hình 3D không được nhúng cứng trong app
+Mô hình 3D không nhúng cứng trong ứng dụng
 
-Dữ liệu 3D được quản lý tập trung trên server
+Dữ liệu được quản lý tập trung trên server
 
-Ứng dụng Android có thể tải và hiển thị mô hình động trong không gian thực
+Ứng dụng tải và hiển thị mô hình động trong không gian thực
 
-2.2 Mục tiêu kỹ thuật
+⚙️ Mục tiêu kỹ thuật
 
-Thiết kế và triển khai server backend cung cấp API và file 3D
+Thiết kế và triển khai server backend
 
-Phát triển ứng dụng Android AR sử dụng ARCore
+Phát triển ứng dụng Android AR dùng ARCore
 
-Kết nối Android app với server qua HTTP
+Kết nối Android ↔ Server qua HTTP
 
-Hiển thị và tương tác mô hình 3D trong môi trường thực
-
-Triển khai hệ thống trên server thật (public server), không chỉ chạy local
+Triển khai và kiểm thử trên server thật (public)
 
 3. Objectives – Mục tiêu chi tiết
-3.1 Backend Server (Node.js)
+3.1 🖥️ Backend Server (Node.js)
 
-Backend đóng vai trò trung tâm quản lý mô hình 3D.
+Backend là trung tâm quản lý dữ liệu mô hình 3D.
 
-Các mục tiêu đã thực hiện:
+✔ Các chức năng đã thực hiện
 
-Xây dựng server bằng Node.js + Express
+Server xây dựng bằng Node.js + Express
 
-Cung cấp các API REST:
+Cung cấp REST API:
 
-GET /api/models: trả về danh sách mô hình 3D
+GET /api/models – Lấy danh sách model
 
-POST /upload: upload file .glb / .gltf lên server
+POST /upload – Upload model .glb / .gltf
 
-Phục vụ file mô hình 3D thông qua HTTP
+Phục vụ file 3D qua HTTP
 
-Hỗ trợ CORS cho Android client
+Hỗ trợ CORS
 
-Lưu file mô hình trong thư mục uploads/
+Lưu trữ model trong thư mục uploads/
 
-Tránh ghi đè file bằng cơ chế timestamp
+Tránh ghi đè file bằng timestamp
 
 Tích hợp Nginx reverse proxy
 
-Mở cổng và cấu hình firewall cho server public
+Mở cổng và cấu hình firewall
 
-Cho phép upload và download mô hình từ Internet
-
-Kết quả:
-
-Server truy cập công khai tại:
-
+🌐 Server public
 http://136.111.208.187
 
-
-Android app có thể tải model từ server thật
-
-3.2 Ứng dụng Android AR
+3.2 📱 Ứng dụng Android AR
 
 Ứng dụng Android là client AR, chịu trách nhiệm hiển thị và tương tác.
 
-Mục tiêu chính:
+✔ Các chức năng đã hoàn thành
 
-Sử dụng ARCore để nhận diện mặt phẳng
+Kết nối server, lấy danh sách model
 
-Render mô hình .glb bằng Sceneform
+Hiển thị model cho người dùng chọn
 
-Tải mô hình động từ server thông qua URL
-
-Đặt mô hình vào không gian thực
-
-Các chức năng đã thực hiện:
-
-Gọi API server để lấy danh sách model
-
-Hiển thị danh sách model cho người dùng chọn
-
-Tải mô hình từ server khi người dùng chọn
-
-Chạm mặt phẳng để đặt mô hình
-
-Đặt nhiều mô hình trong một phiên AR
-
-Tương tác với mô hình:
-
-Di chuyển (drag)
-
-Xoay (rotate)
-
-Phóng to / thu nhỏ (scale)
-
-Xử lý lỗi tải mô hình
-
-Hỗ trợ HTTP trên Android 9+ (usesCleartextTraffic)
-
-Kiểm thử trên thiết bị thật (Xiaomi Redmi Note 11S)
-
-3.3 Mục tiêu về tương tác AR
-
-Nhằm tạo trải nghiệm AR tự nhiên và trực quan.
-
-Các tương tác đã có:
+Tải model từ server bằng URL
 
 Nhận diện mặt phẳng (plane detection)
 
-Hướng dẫn người dùng quét mặt phẳng
+Đặt model trong không gian thực
 
-Đặt mô hình bằng thao tác chạm
+Đặt nhiều model trong một phiên
 
-Điều chỉnh kích thước mô hình bằng cử chỉ
+Tương tác:
 
-Các hướng mở rộng:
+🖐 Di chuyển
 
-Chọn và xoá mô hình
+🔄 Xoay
 
-Thay thế mô hình tại vị trí cũ
+🔍 Phóng to / thu nhỏ
 
-Xem trước mô hình trước khi đặt
+Xử lý lỗi tải model
 
-Đo kích thước trong không gian AR
+Hỗ trợ HTTP (usesCleartextTraffic)
 
-Chụp ảnh, quay video AR
+Kiểm thử trên thiết bị thật
 
-Lưu và khôi phục scene AR
+3.3 🧠 Tương tác AR
+Đã triển khai
+
+Hướng dẫn quét mặt phẳng
+
+Đặt model bằng thao tác chạm
+
+Điều chỉnh kích thước model
+
+Có thể mở rộng
+
+Chọn / xoá model
+
+Thay thế model
+
+Xem trước model
+
+Đo khoảng cách
+
+Chụp ảnh / quay video AR
+
+Lưu & khôi phục scene
 
 4. Kiến trúc hệ thống
-4.1 Sơ đồ kiến trúc
+🧩 Sơ đồ kiến trúc
 Ứng dụng Android AR
         |
-        | HTTP API
+        |  HTTP REST API
         v
-   Nginx (Cổng 80)
+   Nginx (Port 80)
         |
-        | Reverse Proxy
+        |  Reverse Proxy
         v
- Node.js Server (Cổng 3000)
+ Node.js Server (Port 3000)
         |
         v
-   Thư mục uploads (.glb)
-
-4.2 Luồng hoạt động Client–Server
-
-Người dùng upload file .glb lên server qua web
-
-Server lưu file và tạo URL truy cập
-
-Android app gọi API /api/models
-
-Người dùng chọn mô hình
-
-App tải mô hình từ server
-
-Mô hình được hiển thị trong không gian thực
-
-Người dùng tương tác với mô hình AR
+   uploads/ (.glb files)
 
 5. Môi trường phát triển & kiểm thử
-5.1 Server
+🖥️ Server
 
-Hệ điều hành: Linux
+OS: Linux
 
 Backend: Node.js + Express
 
@@ -199,7 +176,7 @@ Reverse Proxy: Nginx
 
 IP public: 136.111.208.187
 
-5.2 Android
+📱 Android
 
 Thiết bị: Xiaomi Redmi Note 11S
 
@@ -211,48 +188,38 @@ Ngôn ngữ: Java + XML
 
 AR Framework: ARCore + Sceneform
 
-6. Các vấn đề gặp phải và cách giải quyết
-Vấn đề 1: App crash do xung đột ARCore – Sceneform
-
-Nguyên nhân: gọi API HDR không tồn tại
-
-Giải pháp: tắt Light Estimation và Depth Mode
-
-Vấn đề 2: Upload file GLB bị lỗi
-
-Nguyên nhân: giới hạn kích thước của Nginx
-
-Giải pháp: cấu hình client_max_body_size
-
-Vấn đề 3: App chạy local nhưng không chạy trên server thật
-
-Nguyên nhân: sai BASE_URL và port
-
-Giải pháp: dùng Nginx reverse proxy + port 80
-
+6. Vấn đề gặp phải & cách giải quyết
+Vấn đề	Nguyên nhân	Giải pháp
+App crash	Xung đột ARCore – Sceneform	Tắt Light Estimation
+Upload lỗi	Giới hạn Nginx	Cấu hình client_max_body_size
+App không load server	Sai port/IP	Dùng Nginx + port 80
 7. Kết quả đạt được
 
-✔ Xây dựng thành công hệ thống AR Client–Server
-✔ Tải mô hình 3D từ server thật
-✔ Hiển thị mô hình trong không gian thực
-✔ Tương tác trực tiếp với mô hình
-✔ Kiến trúc rõ ràng, có thể mở rộng
+✅ Hoàn thiện hệ thống AR Client–Server
+✅ Load mô hình 3D từ server thật
+✅ Hiển thị trong không gian thực
+✅ Tương tác mượt mà
+✅ Kiến trúc rõ ràng, dễ mở rộng
 
-8. Hướng phát triển trong tương lai
+8. Hướng phát triển tương lai
 
-Metadata cho mô hình (scale, rotation, category)
+Metadata cho model (scale, rotation)
 
-Cache model để giảm tải mạng
+Cache model
 
-Lưu trạng thái scene AR
+Lưu trạng thái AR scene
 
 Xác thực người dùng
 
-HTTPS và bảo mật
+HTTPS
 
-Tối ưu hiệu năng cho model lớn
+Tối ưu hiệu năng
 
 9. Kết luận
 
-Đề tài đã triển khai thành công một ứng dụng AR Android theo kiến trúc Client–Server, kết hợp giữa ARCore, Android và backend server.
-Hệ thống không chỉ đáp ứng yêu cầu học thuật mà còn có khả năng ứng dụng thực tế và mở rộng trong tương lai.
+Đề tài đã triển khai thành công một ứng dụng AR Android theo kiến trúc Client–Server, kết hợp giữa ARCore, Android và Backend Server.
+Hệ thống đáp ứng đầy đủ yêu cầu học thuật và có khả năng mở rộng cho các ứng dụng AR thực tế.
+
+📌 Ghi chú
+
+Dự án được phát triển và kiểm thử trên thiết bị thật và server public, đảm bảo tính thực tiễn và ổn định.
