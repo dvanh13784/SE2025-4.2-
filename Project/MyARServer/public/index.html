@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AR Server Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --text: #334155;
+            --danger: #ef4444;
+        }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+        
+        .container { max-width: 1000px; margin: 0 auto; }
+        
+        /* Header */
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .header h1 { font-size: 24px; color: #1e293b; display: flex; align-items: center; gap: 10px; }
+        .refresh-btn { background: white; border: 1px solid #cbd5e1; padding: 8px 15px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        .refresh-btn:hover { background: #f1f5f9; }
+
+        /* Upload Box */
+        .upload-card {
+            background: var(--surface);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            text-align: center;
+            border: 2px dashed #e2e8f0;
+            transition: 0.3s;
+            margin-bottom: 30px;
+            cursor: pointer;
+            position: relative;
+        }
+        .upload-card:hover, .upload-card.dragover { border-color: var(--primary); background: #eef2ff; }
+        .upload-icon { font-size: 40px; color: var(--primary); margin-bottom: 15px; }
+        .upload-btn {
+            background: var(--primary); color: white; border: none; padding: 10px 24px;
+            border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 15px;
+        }
+        input[type="file"] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+
+        /* Table */
+        .table-container { background: var(--surface); border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f1f5f9; text-align: left; padding: 15px 20px; font-size: 14px; color: #64748b; font-weight: 600; }
+        td { padding: 15px 20px; border-bottom: 1px solid #f1f5f9; font-size: 14px; vertical-align: middle; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background: #f8fafc; }
+        
+        .file-name { font-weight: 500; color: #0f172a; display: flex; align-items: center; gap: 10px; }
+        .badge-new { background: #dcfce7; color: #166534; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; display: none; }
+        tr:first-child .badge-new { display: inline-block; } /* Đánh dấu file mới nhất */
+
+        /* Actions */
+        .btn-action { border: none; background: none; cursor: pointer; padding: 8px; border-radius: 6px; transition: 0.2s; font-size: 16px; }
+        .btn-copy { color: var(--primary); background: #eef2ff; margin-right: 5px; }
+        .btn-copy:hover { background: #e0e7ff; }
+        .btn-delete { color: var(--danger); background: #fef2f2; }
+        .btn-delete:hover { background: #fee2e2; }
+
+        /* Toast Notification */
+        #toast {
+            visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center;
+            border-radius: 8px; padding: 12px; position: fixed; z-index: 1; left: 50%; bottom: 30px;
+            transform: translateX(-50%); font-size: 14px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+        }
+        #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1><i class="fa-solid fa-cube"></i> AR Cloud Manager</h1>
+        <button class="refresh-btn" onclick="loadFiles()"><i class="fa-solid fa-rotate-right"></i> Làm mới</button>
+    </div>
+
+    <div class="upload-card" id="dropZone">
+        <div class="upload-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+        <h3>Kéo thả file .GLB vào đây</h3>
+        <p style="color: #94a3b8; margin: 10px 0;">Hoặc nhấn vào nút bên dưới</p>
+        <button class="upload-btn">Chọn File từ máy</button>
+        <input type="file" id="fileInput" accept=".glb, .gltf" multiple>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 40%">Tên File</th>
+                    <th style="width: 15%">Kích thước</th>
+                    <th style="width: 25%">Ngày tải lên</th>
+                    <th style="width: 20%; text-align: right;">Hành động</th>
+                </tr>
+            </thead>
+            <tbody id="fileList">
+                <tr><td colspan="4" style="text-align: center; padding: 30px;">Đang tải dữ liệu...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="toast">Thông báo</div>
+
+<script>
+
+    /* ================================
+       FIX QUAN TRỌNG 1: SET API URL
+    =================================*/
+    const API_URL = 'http://136.111.208.187:3000';
+
+    /* ================================
+            1. Load danh sách file
+    =================================*/
+    async function loadFiles() {
+        try {
+            const res = await fetch(API_URL + '/api/models');
+            const data = await res.json();
+            const tbody = document.getElementById('fileList');
+            tbody.innerHTML = '';
+
+            if (data.models.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #94a3b8; padding: 40px;">Chưa có model nào. Hãy upload ngay!</td></tr>`;
+                return;
+            }
+
+            data.models.forEach((file, index) => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>
+                            <div class="file-name">
+                                <i class="fa-regular fa-file-code" style="color: #64748b;"></i>
+                                ${file.name}
+                                ${index === 0 ? '<span class="badge-new">MỚI NHẤT</span>' : ''}
+                            </div>
+                        </td>
+                        <td>${file.size}</td>
+                        <td style="color: #64748b; font-size: 13px;">${file.date}</td>
+                        <td style="text-align: right;">
+                            <button class="btn-action btn-copy" onclick="copyLink('${file.url}')" title="Copy Link">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                            <button class="btn-action btn-delete" onclick="deleteFile('${file.name}')" title="Xóa">
+                                <i class="fa-regular fa-trash-can"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        } catch (e) {
+            console.error(e);
+            showToast('Lỗi tải danh sách!');
+        }
+    }
+
+    /* ================================
+               2. Upload file
+    =================================*/
+    const fileInput = document.getElementById('fileInput');
+    const dropZone = document.getElementById('dropZone');
+
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        if (e.dataTransfer.files.length) handleUpload(e.dataTransfer.files);
+    });
+
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length) handleUpload(fileInput.files);
+    });
+
+    async function handleUpload(files) {
+        const formData = new FormData();
+        Array.from(files).forEach(f => formData.append('files', f));
+
+        showToast('⏳ Đang upload...');
+        
+        try {
+            const res = await fetch(API_URL + '/upload', { method: 'POST', body: formData });
+            if (res.ok) {
+                showToast('✅ Upload thành công!');
+                loadFiles();
+                fileInput.value = '';
+            } else {
+                showToast('❌ Lỗi upload!');
+            }
+        } catch (err) { showToast('❌ Lỗi kết nối server'); }
+    }
+
+    /* ================================
+                3. Xóa file
+    =================================*/
+    async function deleteFile(filename) {
+        if (!confirm(`Bạn chắc chắn muốn xóa: ${filename}?`)) return;
+
+        try {
+            const res = await fetch(API_URL + `/api/files/${filename}`, { method: 'DELETE' });
+            if (res.ok) {
+                showToast('🗑️ Đã xóa file');
+                loadFiles();
+            } else {
+                showToast('❌ Không xóa được');
+            }
+        } catch (err) { showToast('❌ Lỗi server'); }
+    }
+
+    /* ================================
+                4. Copy link
+    =================================*/
+    function copyLink(text) {
+        navigator.clipboard.writeText(text).then(() => showToast('📋 Đã copy link!'));
+    }
+
+    /* ================================
+               Toast helper
+    =================================*/
+    function showToast(msg) {
+        const t = document.getElementById("toast");
+        t.innerText = msg;
+        t.className = "show";
+        setTimeout(() => t.className = t.className.replace("show", ""), 3000);
+    }
+
+    // Load initial list
+    loadFiles();
+
+</script>
+
+</body>
+</html>
