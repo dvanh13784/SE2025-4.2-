@@ -31,7 +31,7 @@ import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final String SERVER_BASE_URL = "http://192.168.100.69:3000";
+    private static final String SERVER_BASE_URL = "http://136.111.208.187";
     private static final String MODELS_ENDPOINT = SERVER_BASE_URL + "/api/models";
 
     private ArFragment arFragment;
@@ -172,7 +172,7 @@ public class MainActivity extends AppCompatActivity {
 
         ModelRenderable.builder()
                 .setSource(this, Uri.parse(url))
-                .setIsFilamentGltf(true) 
+                .setIsFilamentGltf(true) // 👇 QUAN TRỌNG: Thêm dòng này nếu dùng bản Sceneform mới (hỗ trợ GLB tốt hơn)
                 .setRegistryId(url)
                 .build()
                 .thenAccept(renderable -> {
