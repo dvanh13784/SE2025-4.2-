@@ -15,9 +15,9 @@
             --danger: #ef4444;
         }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
-        
+
         .container { max-width: 1000px; margin: 0 auto; }
-        
+
         /* Header */
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
         .header h1 { font-size: 24px; color: #1e293b; display: flex; align-items: center; gap: 10px; }
@@ -52,7 +52,7 @@
         td { padding: 15px 20px; border-bottom: 1px solid #f1f5f9; font-size: 14px; vertical-align: middle; }
         tr:last-child td { border-bottom: none; }
         tr:hover { background: #f8fafc; }
-        
+
         .file-name { font-weight: 500; color: #0f172a; display: flex; align-items: center; gap: 10px; }
         .badge-new { background: #dcfce7; color: #166534; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; display: none; }
         tr:first-child .badge-new { display: inline-block; } /* Đánh dấu file mới nhất */
@@ -71,8 +71,6 @@
             transform: translateX(-50%); font-size: 14px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
         }
         #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
-        @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
-        @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
     </style>
 </head>
 <body>
@@ -111,12 +109,18 @@
 <div id="toast">Thông báo</div>
 
 <script>
-    const API_URL = ''; // Để trống vì cùng domain
 
-    // 1. Tải danh sách
+    /* ================================
+       FIX QUAN TRỌNG 1: SET API URL
+    =================================*/
+    const API_URL = 'http://136.111.208.187:3000';
+
+    /* ================================
+            1. Load danh sách file
+    =================================*/
     async function loadFiles() {
         try {
-            const res = await fetch('/api/models');
+            const res = await fetch(API_URL + '/api/models');
             const data = await res.json();
             const tbody = document.getElementById('fileList');
             tbody.innerHTML = '';
@@ -155,11 +159,12 @@
         }
     }
 
-    // 2. Xử lý Upload
+    /* ================================
+               2. Upload file
+    =================================*/
     const fileInput = document.getElementById('fileInput');
     const dropZone = document.getElementById('dropZone');
 
-    // Hiệu ứng kéo thả
     dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
     dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
     dropZone.addEventListener('drop', (e) => {
@@ -177,25 +182,27 @@
         Array.from(files).forEach(f => formData.append('files', f));
 
         showToast('⏳ Đang upload...');
-        
+
         try {
-            const res = await fetch('/upload', { method: 'POST', body: formData });
+            const res = await fetch(API_URL + '/upload', { method: 'POST', body: formData });
             if (res.ok) {
                 showToast('✅ Upload thành công!');
-                loadFiles(); // Reload lại bảng
-                fileInput.value = ''; // Reset
+                loadFiles();
+                fileInput.value = '';
             } else {
                 showToast('❌ Lỗi upload!');
             }
         } catch (err) { showToast('❌ Lỗi kết nối server'); }
     }
 
-    // 3. Xóa File
+    /* ================================
+                3. Xóa file
+    =================================*/
     async function deleteFile(filename) {
         if (!confirm(`Bạn chắc chắn muốn xóa: ${filename}?`)) return;
 
         try {
-            const res = await fetch(`/api/files/${filename}`, { method: 'DELETE' });
+            const res = await fetch(API_URL + `/api/files/${filename}`, { method: 'DELETE' });
             if (res.ok) {
                 showToast('🗑️ Đã xóa file');
                 loadFiles();
@@ -205,11 +212,16 @@
         } catch (err) { showToast('❌ Lỗi server'); }
     }
 
-    // 4. Copy Link
+    /* ================================
+                4. Copy link
+    =================================*/
     function copyLink(text) {
         navigator.clipboard.writeText(text).then(() => showToast('📋 Đã copy link!'));
     }
 
+    /* ================================
+               Toast helper
+    =================================*/
     function showToast(msg) {
         const t = document.getElementById("toast");
         t.innerText = msg;
@@ -217,8 +229,9 @@
         setTimeout(() => t.className = t.className.replace("show", ""), 3000);
     }
 
-    // Chạy khi mở web
+    // Load initial list
     loadFiles();
+
 </script>
 
 </body>
